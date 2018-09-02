@@ -1,0 +1,43 @@
+language: c
+
+compiler:
+  - clang
+  - gcc
+
+sudo: required
+
+services:
+  - docker
+
+env:
+  global:
+    # DEPLOY_USER
+    - secure: "TCQVbzdDHpalIlL8zfW5VOvn7v7ZaEDbSVsAJjG8V096mi9m177VvQqSKEaowydYSnVejj2VGemaEXKGgF1j5OD2xwouU77KbEDC2A7I6ZS7lPy+v5PWib3D6YSp6w9tcxZNtlB+S6ziz4f5gY6Zrhidb+Wtoq5N3/3BHlCpXVtMguQl4gDxTu8yKk3rMBCuw3HnZMiJBlYl79h1/xOOkfLCrykWQxKJE/yUJjoOHAqvsb7HswdoPr8ihP3ICr4K0wTkZx8i3N0lwEVYfIxnUF77ZJYkdXDdAHB1zq3eCbYHpKCxJsElOSxKZiSpYaJ6d7oLYttbd2QVi2w6w8Fu4HFcnQSHH+RRx9V45W/Y/HGejk0Ojt8vOgM4Y24rKgCz6y6NrL1GMhWGNUGclKtCwOkAImjDSSXpuRqWROGbJIKBFHQD+SPwX152aL2sO1crEvEtMjdUFiKl4Daz0u0AsL9Kw4bvxbSyxX+OnILehA4p5hSLB57lubV1r+3qaMOCTUH4PQtgWbU40wAGjhv97jaLhmgf2J/kn0TTLvMmiK2M+h8EBVUk5osgHOMI/BumkPT0ul17+Oybr5h2ND672chQlrhmv4hsedGzkC61/Nv1WEMKYwkHBoRGQgnBBK2uZA/NzxbpFxOr2UeAdtdPLv0bu5ewU8t5pnoM9KeMHQM="
+    # DEPLOY_HOST
+    - secure: "cJfR1NArOX7dx2cso1XnsNsrcpOrp6kj5Fl4biKgFjck42xkdI4mB84UEf4EjK7gXa17xAZ3sKthhGxOlD/Gc7acmWyt6GylEL+IKtnYouORz8P6hcOPDki3cRpaGx81H/qHXkXD+nex+EG5vX86LJBRwfQOKTMpKSFQdXob+PtAlLY4g9j1HZICfYTSDC66t5oRgkRlhc0Bw5NXDMDLD0Czj+nXYPQtr67GbcZecLcwbAbxWMZQHxnM55HewvqqUcyNio47FtAwhldb6q0zMhbP5A+mzfgK2iib+uGCG/cRSRROdCIBeb8RTSlOlV6RpPjKc6m7rDCTv42/ORfk96GerR8YZ9QqcQtNDvY+HhCPdxQLMUq+i9ApgUWmrc0pJmpWqr8nDb9t1BGX4HCVaKtSVTtuWtMN3rWmt7wAhOleZKT3iACKjyImgIi3IIj05+ZCC2UJXAOW55xaWuC2Z8tIOm1hbCu06P/ef6AG/5Gsjr/m3FCK1o8guXNqsEBbNIPAMkS9g5jnYBWgM5jT93VSe3H5dDeu3iRooqScLCHfoypcsw/RW2QMa+2rGu3ov4lue6ukKaw7bVoAa9ODOcDDxRkWeUyQ3MzWBKuGgGUzEjY/aZvR5hsHxYktEBB+jBOvThAihgo9Ayc9Rrtj/IgE4YQIYjpxO+n0rrCubbY="
+
+branches:
+  except:
+    - /^(?i:continuous)$/
+
+script:
+  - wget -c https://raw.githubusercontent.com/lirios/infra-travis/master/run
+  - bash run ./.travis/build.sh
+
+deploy:
+  - provider: script
+    script: .travis/deploy.sh build/default/liri-eglfs-artifacts.tar.gz
+    skip_cleanup: true
+    on:
+      branch: master
+      condition: "$CC = gcc) && ($TRAVIS_PULL_REQUEST = false"
+  - provider: script
+    script: .travis/deploy.sh build/default/liri-eglfs-artifacts.tar.gz
+    skip_cleanup: true
+    on:
+      branch: develop
+      condition: "$CC = gcc) && ($TRAVIS_PULL_REQUEST = false"
+
+notifications:
+  email: false
+  slack: lirios:fdUqVmPzqPskEL1UBhqapZ0w
