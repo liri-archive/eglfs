@@ -35,6 +35,8 @@
 #include <QtCore/QTimer>
 #include <QtGui/qpa/qwindowsysteminterface.h>
 
+#include <LiriLogind/LiriLogind>
+
 #include "logging_p.h"
 #include "libinputkeyboard.h"
 #include "libinputkeyboard_p.h"
@@ -146,6 +148,12 @@ void LibInputKeyboard::handleKey(libinput_event_keyboard *event)
         modifiers |= Qt::MetaModifier;
 
     xkb_state_update_key(d->state, key, isPressed ? XKB_KEY_DOWN : XKB_KEY_UP);
+
+    // Switch to virtual terminal
+    if (isPressed && modifiers.testFlag(Qt::ControlModifier) && modifiers.testFlag(Qt::AltModifier)) {
+        if (keysym >= XKB_KEY_XF86Switch_VT_1 && keysym <= XKB_KEY_XF86Switch_VT_12)
+            Logind::instance()->switchTo(keysym - XKB_KEY_XF86Switch_VT_1 + 1);
+    }
 
     // Event
     LibInputKeyEvent keyEvent;
