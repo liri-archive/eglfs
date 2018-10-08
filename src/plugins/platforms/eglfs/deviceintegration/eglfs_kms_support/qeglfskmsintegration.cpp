@@ -45,12 +45,14 @@
 #include <LiriKmsSupport/private/qkmsdevice_p.h>
 
 #include <QtGui/qpa/qplatformwindow.h>
+#include <QtGui/qpa/qwindowsysteminterface.h>
 #include <QtGui/QScreen>
 
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
 #include <LiriPlatformHeaders/lirieglfsfunctions.h>
+#include <LiriLogind/LiriLogind>
 
 QT_BEGIN_NAMESPACE
 
@@ -73,6 +75,14 @@ void QEglFSKmsIntegration::platformInit()
     m_device = createDevice();
     if (Q_UNLIKELY(!m_device->open()))
         qFatal("Could not open DRM device");
+
+    // Redraw all toplevel windows as soon as the session is reactivated
+    QObject::connect(Liri::Logind::instance(), &Liri::Logind::sessionActiveChanged, [this](bool active) {
+        if (active) {
+            for (QWindow *window : qGuiApp->topLevelWindows())
+                QWindowSystemInterface::handleExposeEvent(window, QRegion(QRect(QPoint(0, 0), window->size())));
+        }
+    });
 }
 
 void QEglFSKmsIntegration::platformDestroy()

@@ -53,6 +53,7 @@
 
 #include <Qt5Udev/Udev>
 #include <Qt5Udev/UdevEnumerate>
+#include <LiriLogind/LiriLogind>
 
 #include <gbm.h>
 
@@ -155,6 +156,9 @@ QPlatformCursor *QEglFSKmsGbmIntegration::createCursor(QPlatformScreen *screen) 
 
 void QEglFSKmsGbmIntegration::presentBuffer(QPlatformSurface *surface)
 {
+    if (!Liri::Logind::instance()->isSessionActive())
+        return;
+
     QWindow *window = static_cast<QWindow *>(surface->surface());
     QEglFSKmsGbmScreen *screen = static_cast<QEglFSKmsGbmScreen *>(window->screen()->handle());
     if (!screen->modeChangeRequested())

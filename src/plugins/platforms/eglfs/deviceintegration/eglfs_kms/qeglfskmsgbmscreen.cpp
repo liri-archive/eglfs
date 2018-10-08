@@ -49,6 +49,8 @@
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtFbSupport/private/qfbvthandler_p.h>
 
+#include <LiriLogind/LiriLogind>
+
 #include <errno.h>
 
 static const char *formatGLError(GLenum err)
@@ -255,6 +257,10 @@ void QEglFSKmsGbmScreen::ensureModeSet(uint32_t fb)
 void QEglFSKmsGbmScreen::waitForFlip()
 {
     if (m_headless || m_cloneSource || modeChangeRequested())
+        return;
+
+    // Avoid permission denied error when session is not active
+    if (!Liri::Logind::instance()->isSessionActive())
         return;
 
     // Don't lock the mutex unless we actually need to
