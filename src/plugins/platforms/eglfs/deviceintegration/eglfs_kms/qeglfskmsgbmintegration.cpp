@@ -110,15 +110,14 @@ EGLNativeWindowType QEglFSKmsGbmIntegration::createNativeWindow(QPlatformWindow 
                                                                 const QSize &size,
                                                                 const QSurfaceFormat &format)
 {
-    Q_UNUSED(platformWindow);
     Q_UNUSED(format);
     Q_ASSERT(device());
 
-    //uint32_t gbmFormat = drmFormatToGbmFormat(m_output.drm_format);
+    QEglFSKmsGbmScreen *screen = static_cast<QEglFSKmsGbmScreen *>(platformWindow->screen());
 
     gbm_surface *surface =
             gbm_surface_create(static_cast<QEglFSKmsGbmDevice *>(device())->gbmDevice(),
-                               size.width(), size.height(), GBM_FORMAT_XRGB8888,
+                               size.width(), size.height(), screen->output().drm_format,
                                GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
 
     return reinterpret_cast<EGLNativeWindowType>(surface);
