@@ -232,7 +232,6 @@ void QEglFSKmsGbmIntegration::setScreenModeStatic(QScreen *screen, int modeIndex
                 gbmScreen->setSurface(reinterpret_cast<gbm_surface *>(gbmWindow->eglWindow()));
                 gbmScreen->setCurrentMode(modeIndex);
                 gbmWindow->setGeometry(QRect());
-                //QWindowSystemInterface::handleGeometryChange(gbmWindow->window(), gbmScreen->rawGeometry());
             }
             break;
         }
@@ -240,7 +239,7 @@ void QEglFSKmsGbmIntegration::setScreenModeStatic(QScreen *screen, int modeIndex
 
     gbmScreen->setModeChangeRequested(false);
 
-    //QWindowSystemInterface::handleScreenGeometryChange(screen, gbmScreen->geometry(), gbmScreen->availableGeometry());
+    QWindowSystemInterface::handleScreenGeometryChange(screen, gbmScreen->geometry(), gbmScreen->availableGeometry());
 }
 
 QT_END_NAMESPACE
