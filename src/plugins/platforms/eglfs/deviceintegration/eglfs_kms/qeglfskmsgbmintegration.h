@@ -63,7 +63,7 @@ public:
     EGLDisplay createDisplay(EGLNativeDisplayType nativeDisplay) override;
     EGLNativeWindowType createNativeWindow(QPlatformWindow *platformWindow,
                                            const QSize &size,
-                                           const QSurfaceFormat &format);
+                                           const QSurfaceFormat &format) override;
     EGLNativeWindowType createNativeOffscreenWindow(const QSurfaceFormat &format) override;
     void destroyNativeWindow(EGLNativeWindowType window) override;
 
