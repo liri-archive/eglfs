@@ -1,0 +1,17 @@
+liri_add_plugin(eglfs-kms-egldevice-integration
+    TYPE
+        liri/egldeviceintegrations
+    SOURCES
+        qeglfskmsegldevice.cpp
+        qeglfskmsegldevice.h
+        qeglfskmsegldeviceintegration.cpp
+        qeglfskmsegldeviceintegration.h
+        qeglfskmsegldevicemain.cpp
+        qeglfskmsegldevicescreen.cpp
+        qeglfskmsegldevicescreen.h
+    LIBRARIES
+        Liri::EglFSDeviceIntegration
+        Liri::EglFSDeviceIntegrationPrivate
+        Liri::EglFSKmsSupport
+        Liri::EglFSKmsSupportPrivate
+)

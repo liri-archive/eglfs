@@ -40,7 +40,7 @@
 #ifndef QEGLFSKMSEGLDEVICE_H
 #define QEGLFSKMSEGLDEVICE_H
 
-#include <qeglfskmsdevice.h>
+#include <LiriEglFSKmsSupport/qeglfskmsdevice.h>
 
 QT_BEGIN_NAMESPACE
 

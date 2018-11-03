@@ -42,8 +42,9 @@
 #ifndef QEGLFSKMSGBMDEVICE_H
 #define QEGLFSKMSGBMDEVICE_H
 
+#include <LiriEglFSKmsSupport/qeglfskmsdevice.h>
+
 #include "qeglfskmsgbmcursor.h"
-#include <qeglfskmsdevice.h>
 
 #include <gbm.h>
 

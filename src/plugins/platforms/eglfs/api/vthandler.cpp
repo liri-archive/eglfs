@@ -29,7 +29,6 @@
 
 #include <LiriLogind/Logind>
 
-#include "logging_p.h"
 #include "vthandler.h"
 #include "vthandler_p.h"
 

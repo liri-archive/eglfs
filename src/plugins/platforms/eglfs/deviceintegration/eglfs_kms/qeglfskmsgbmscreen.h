@@ -42,8 +42,9 @@
 #ifndef QEGLFSKMSGBMSCREEN_H
 #define QEGLFSKMSGBMSCREEN_H
 
-#include "qeglfskmsscreen.h"
 #include <QtCore/QMutex>
+
+#include <LiriEglFSKmsSupport/qeglfskmsscreen.h>
 
 #include <gbm.h>
 

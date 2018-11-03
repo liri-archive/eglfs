@@ -39,7 +39,7 @@ fi
 destfilename=$(basename $filename)
 
 ssh-keyscan $DEPLOY_HOST 2>&1 | tee -a $HOME/.ssh/known_hosts
-openssl aes-256-cbc -K $encrypted_fd8ea058a4e4_key -iv $encrypted_fd8ea058a4e4_iv -in .travis/github_deploy_key_liri_ci.enc -out /tmp/deploy_rsa -d
+openssl aes-256-cbc -K $encrypted_5b45744ca1a5_key -iv $encrypted_5b45744ca1a5_iv -in .travis/github_deploy_key_liri_ci.enc -out /tmp/deploy_rsa -d
 eval "$(ssh-agent -s)"
 chmod 600 /tmp/deploy_rsa
 ssh-add /tmp/deploy_rsa

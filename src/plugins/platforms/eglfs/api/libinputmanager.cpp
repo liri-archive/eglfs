@@ -24,7 +24,8 @@
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/private/qinputdevicemanager_p_p.h>
 
-#include "libinputhandler.h"
+#include <LiriLibInput/libinputhandler.h>
+
 #include "libinputmanager_p.h"
 
 namespace Liri {

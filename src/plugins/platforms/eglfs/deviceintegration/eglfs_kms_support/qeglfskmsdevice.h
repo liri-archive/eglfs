@@ -41,7 +41,7 @@
 #ifndef QEGLFSKMSDEVICE_H
 #define QEGLFSKMSDEVICE_H
 
-#include "private/qeglfsglobal_p.h"
+#include <LiriEglFSDeviceIntegration/private/qeglfsintegration_p.h>
 #include <LiriKmsSupport/private/qkmsdevice_p.h>
 
 QT_BEGIN_NAMESPACE

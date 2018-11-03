@@ -42,9 +42,10 @@
 #ifndef QEGLFSKMSGBMINTEGRATION_H
 #define QEGLFSKMSGBMINTEGRATION_H
 
-#include "qeglfskmsintegration.h"
 #include <QtCore/QMap>
 #include <QtCore/QVariant>
+
+#include <LiriEglFSKmsSupport/qeglfskmsintegration.h>
 
 namespace QtUdev {
 class Udev;
