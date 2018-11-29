@@ -67,7 +67,7 @@ To the `qbs` call above you can append additional configuration parameters:
 See [lirideployment.qbs](https://github.com/lirios/qbs-shared/blob/develop/modules/lirideployment/lirideployment.qbs)
 for more deployment-related parameters.
 
-### Environment variables
+## Environment variables
 
 The liri QPA plugin supports different graphics hardware through EGL
 device integration plugins.
@@ -75,7 +75,7 @@ device integration plugins.
 The environment variables that can influence the QPA plugin
 are the same as those of [eglfs](http://doc.qt.io/qt-5/embedded-linux.html#eglfs).
 
-### Logging categories
+## Logging categories
 
 Qt 5.2 introduced logging categories and Liri takes advantage of
 them to make debugging easier.
@@ -83,7 +83,7 @@ them to make debugging easier.
 Please refer to the [Qt](http://doc.qt.io/qt-5/qloggingcategory.html) documentation
 to learn how to enable them.
 
-### Available categories
+## Available categories
 
 * Platform:
   * **liri.qpa.deviceintegration:** Device integration
