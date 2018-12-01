@@ -96,7 +96,7 @@ liri_add_module(EglFSDeviceIntegration
     NO_PKGCONFIG
 )
 
-liri_add_plugin(eglfs
+liri_add_plugin(lirieglfs
     TYPE
         platforms
     SOURCES
