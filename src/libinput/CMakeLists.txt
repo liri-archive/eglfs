@@ -49,4 +49,5 @@ liri_add_module(LibInput
         Liri::Logind
     NO_CMAKE
     NO_PKGCONFIG
+    STATIC
 )

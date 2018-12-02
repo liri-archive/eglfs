@@ -19,4 +19,5 @@ liri_add_module(KmsSupport
         PkgConfig::Libdrm
     NO_CMAKE
     NO_PKGCONFIG
+    STATIC
 )

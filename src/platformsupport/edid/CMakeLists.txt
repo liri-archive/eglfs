@@ -16,4 +16,5 @@ liri_add_module(EdidSupport
         Qt5::CorePrivate
     NO_CMAKE
     NO_PKGCONFIG
+    STATIC
 )
