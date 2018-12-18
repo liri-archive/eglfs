@@ -1,31 +1,20 @@
-if(Qt5Core_VERSION VERSION_LESS "5.8.0")
-    find_package(Qt5PlatformSupport REQUIRED)
-    find_package(Qt5PlatformCompositorSupport REQUIRED)
+find_package(Qt5FontDatabaseSupport REQUIRED)
+find_package(Qt5ThemeSupport REQUIRED)
+find_package(Qt5EventDispatcherSupport REQUIRED)
+find_package(Qt5EglSupport REQUIRED)
+find_package(Qt5PlatformCompositorSupport REQUIRED)
+find_package(Qt5ServiceSupport REQUIRED)
+find_package(Qt5FbSupport REQUIRED)
 
-    add_definitions(-DQ_FONTCONFIGDATABASE)
-    set(QT5PLATFORMSUPPORT_LIBS
-        Qt5PlatformSupport::Qt5PlatformSupport
-        Qt5PlatformCompositor::Qt5PlatformCompositor
-    )
-else()
-    find_package(Qt5FontDatabaseSupport REQUIRED)
-    find_package(Qt5ThemeSupport REQUIRED)
-    find_package(Qt5EventDispatcherSupport REQUIRED)
-    find_package(Qt5EglSupport REQUIRED)
-    find_package(Qt5PlatformCompositorSupport REQUIRED)
-    find_package(Qt5ServiceSupport REQUIRED)
-    find_package(Qt5FbSupport REQUIRED)
-
-    set(QT5PLATFORMSUPPORT_LIBS
-        Qt5FontDatabaseSupport::Qt5FontDatabaseSupport
-        Qt5ThemeSupport::Qt5ThemeSupport
-        Qt5EventDispatcherSupport::Qt5EventDispatcherSupport
-        Qt5EglSupport::Qt5EglSupport
-        Qt5PlatformCompositorSupport::Qt5PlatformCompositorSupport
-        Qt5ServiceSupport::Qt5ServiceSupport
-        Qt5FbSupport::Qt5FbSupport
-    )
-endif()
+set(QT5PLATFORMSUPPORT_LIBS
+    Qt5FontDatabaseSupport::Qt5FontDatabaseSupport
+    Qt5ThemeSupport::Qt5ThemeSupport
+    Qt5EventDispatcherSupport::Qt5EventDispatcherSupport
+    Qt5EglSupport::Qt5EglSupport
+    Qt5PlatformCompositorSupport::Qt5PlatformCompositorSupport
+    Qt5ServiceSupport::Qt5ServiceSupport
+    Qt5FbSupport::Qt5FbSupport
+)
 
 if(NOT TARGET Liri::Qt5Udev)
     find_package(Qt5Udev REQUIRED)
