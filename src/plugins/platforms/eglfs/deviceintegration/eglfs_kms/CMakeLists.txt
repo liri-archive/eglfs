@@ -1,3 +1,5 @@
+find_package(EGL REQUIRED)
+
 liri_add_plugin(eglfs-kms-integration
     TYPE
         liri/egldeviceintegrations
@@ -18,4 +20,5 @@ liri_add_plugin(eglfs-kms-integration
         Liri::EglFSDeviceIntegrationPrivate
         Liri::EglFSKmsSupport
         Liri::EglFSKmsSupportPrivate
+        EGL
 )
