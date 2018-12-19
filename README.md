@@ -31,6 +31,7 @@ And the following modules:
  * [libinput](http://www.freedesktop.org/wiki/Software/libinput/) >= 0.12
  * [libdrm](https://wiki.freedesktop.org/dri/)
  * [gbm](http://www.mesa3d.org)
+ * [egl](http://www.mesa3d.org)
 
 ## Installation
 
