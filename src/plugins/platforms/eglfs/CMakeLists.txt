@@ -5,6 +5,7 @@ find_package(Qt5EglSupport REQUIRED)
 find_package(Qt5PlatformCompositorSupport REQUIRED)
 find_package(Qt5ServiceSupport REQUIRED)
 find_package(Qt5FbSupport REQUIRED)
+find_package(Fontconfig REQUIRED)
 
 set(QT5PLATFORMSUPPORT_LIBS
     Qt5FontDatabaseSupport::Qt5FontDatabaseSupport
@@ -92,4 +93,5 @@ liri_add_plugin(lirieglfs
         qeglfsmain.cpp
     LIBRARIES
         Liri::EglFSDeviceIntegration
+        Fontconfig::Fontconfig
 )
