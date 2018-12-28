@@ -7,6 +7,8 @@ find_package(Qt5ServiceSupport REQUIRED)
 find_package(Qt5FbSupport REQUIRED)
 find_package(Fontconfig REQUIRED)
 
+find_package(EGL REQUIRED)
+
 set(QT5PLATFORMSUPPORT_LIBS
     Qt5FontDatabaseSupport::Qt5FontDatabaseSupport
     Qt5ThemeSupport::Qt5ThemeSupport
@@ -82,6 +84,7 @@ liri_add_module(EglFSDeviceIntegration
         Liri::Qt5Udev
         Liri::Logind
         ${QT5PLATFORMSUPPORT_LIBS}
+        EGL
     EXPORT_IMPORT_CONDITION
         QT_BUILD_EGL_DEVICE_LIB
     NO_CMAKE
