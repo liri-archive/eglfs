@@ -1,5 +1,6 @@
 find_package(Libdrm REQUIRED)
 find_package(Gbm REQUIRED)
+find_package(EGL REQUIRED)
 
 liri_add_module(EglFSKmsSupport
     DESCRIPTION
@@ -33,6 +34,7 @@ liri_add_module(EglFSKmsSupport
         Liri::KmsSupportPrivate
         PkgConfig::Libdrm
         PkgConfig::Gbm
+        EGL
     NO_CMAKE
     NO_PKGCONFIG
 )
