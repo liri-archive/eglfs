@@ -82,6 +82,8 @@ liri_add_module(EglFSDeviceIntegration
         Liri::Qt5Udev
         Liri::Logind
         ${QT5PLATFORMSUPPORT_LIBS}
+    EXPORT_IMPORT_CONDITION
+        QT_BUILD_EGL_DEVICE_LIB
     NO_CMAKE
     NO_PKGCONFIG
 )
