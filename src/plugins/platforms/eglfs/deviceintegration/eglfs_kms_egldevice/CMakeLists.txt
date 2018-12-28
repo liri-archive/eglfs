@@ -9,6 +9,8 @@ liri_add_plugin(eglfs-kms-egldevice-integration
         qeglfskmsegldevicemain.cpp
         qeglfskmsegldevicescreen.cpp
         qeglfskmsegldevicescreen.h
+    PUBLIC_DEFINES
+        QT_EGL_NO_X11
     LIBRARIES
         Liri::EglFSDeviceIntegration
         Liri::EglFSDeviceIntegrationPrivate

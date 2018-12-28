@@ -18,6 +18,8 @@ liri_add_module(EglFSKmsSupport
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_FOREACH
+    PUBLIC_DEFINES
+        QT_EGL_NO_X11
     PUBLIC_LIBRARIES
         Qt5::Core
         Qt5::CorePrivate
