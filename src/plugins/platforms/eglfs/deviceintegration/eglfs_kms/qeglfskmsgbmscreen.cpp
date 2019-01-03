@@ -363,7 +363,12 @@ void QEglFSKmsGbmScreen::recordFrame(EGLClientBuffer bo, int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image);
+    PFNGLEGLIMAGETARGETTEXTURE2DOESPROC imageTexture2D =
+        reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(eglGetProcAddress("glEGLImageTargetTexture2DOES"));
+    if (imageTexture2D)
+        imageTexture2D(GL_TEXTURE_2D, image);
+    else
+        qCritical("No glEGLImageTargetTexture2DOES function available");
 
     // OpenGL 3.0 functions
     auto glContext = QOpenGLContext::currentContext();
