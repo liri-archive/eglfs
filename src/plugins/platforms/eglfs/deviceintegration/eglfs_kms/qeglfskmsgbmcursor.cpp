@@ -290,7 +290,7 @@ void QEglFSKmsGbmCursor::initCursorAtlas()
     m_cursorAtlas.cursorHeight = image.height() / ((Qt::LastCursor + cursorsPerRow) / cursorsPerRow);
     m_cursorAtlas.width = image.width();
     m_cursorAtlas.height = image.height();
-    m_cursorAtlas.image = image;
+    m_cursorAtlas.image = std::move(image);
 }
 
 QT_END_NAMESPACE

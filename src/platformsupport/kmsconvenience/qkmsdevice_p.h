@@ -124,14 +124,14 @@ public:
 private:
     void loadConfig();
 
+    QMap<QString, QVariantMap> m_outputSettings;
     QString m_devicePath;
-    bool m_headless;
     QSize m_headlessSize;
+    VirtualDesktopLayout m_virtualDesktopLayout;
+    bool m_headless;
     bool m_hwCursor;
     bool m_separateScreens;
     bool m_pbuffers;
-    VirtualDesktopLayout m_virtualDesktopLayout;
-    QMap<QString, QVariantMap> m_outputSettings;
 };
 
 // NB! QKmsPlane does not store the current state and offers no functions to

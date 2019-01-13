@@ -131,7 +131,7 @@ static bool parseModeline(const QByteArray &text, drmModeModeInfoPtr mode)
     mode->vrefresh = 0;
     mode->flags = 0;
 
-    if (sscanf(text.constData(), "%f %hd %hd %hd %hd %hd %hd %hd %hd %15s %15s",
+    if (sscanf(text.constData(), "%f %hu %hu %hu %hu %hu %hu %hu %hu %15s %15s",
                &fclock,
                &mode->hdisplay,
                &mode->hsync_start,

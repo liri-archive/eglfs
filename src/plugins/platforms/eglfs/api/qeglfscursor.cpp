@@ -204,7 +204,7 @@ void QEglFSCursor::initCursorAtlas()
     m_cursorAtlas.cursorHeight = image.height() / ((Qt::LastCursor + cursorsPerRow) / cursorsPerRow);
     m_cursorAtlas.width = image.width();
     m_cursorAtlas.height = image.height();
-    m_cursorAtlas.image = image;
+    m_cursorAtlas.image = std::move(image);
 }
 
 #ifndef QT_NO_CURSOR
@@ -245,7 +245,7 @@ bool QEglFSCursor::setCurrentCursor(QCursor *cursor)
         m_cursor.hotSpot = cursor->hotSpot();
         m_cursor.useCustomCursor = false; // will get updated in the next render()
         m_cursor.size = image.size();
-        m_cursor.customCursorImage = image;
+        m_cursor.customCursorImage = std::move(image);
         m_cursor.customCursorPending = true;
         m_cursor.customCursorKey = m_cursor.customCursorImage.cacheKey();
     }

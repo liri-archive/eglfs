@@ -115,15 +115,15 @@ private:
 
     // current cursor information
     struct Cursor {
-        Cursor() : shape(Qt::BlankCursor), customCursorPending(false), customCursorKey(0), useCustomCursor(false) { }
-        Qt::CursorShape shape;
+        Cursor() : customCursorKey(0), shape(Qt::BlankCursor), customCursorPending(false), useCustomCursor(false) { }
         QRectF textureRect; // normalized rect inside texture
         QSize size; // size of the cursor
         QPoint hotSpot;
         QImage customCursorImage;
         QPoint pos; // current cursor position
-        bool customCursorPending;
         qint64 customCursorKey;
+        Qt::CursorShape shape;
+        bool customCursorPending;
         bool useCustomCursor;
     } m_cursor;
 
@@ -137,12 +137,12 @@ private:
         QImage image; // valid until it's uploaded
     } m_cursorAtlas;
 
-    bool m_visible;
+    QMatrix4x4 m_rotationMatrix;
     QEglFSScreen *m_screen;
     QPlatformScreen *m_activeScreen;
     QEglFSCursorDeviceListener *m_deviceListener;
     bool m_updateRequested;
-    QMatrix4x4 m_rotationMatrix;
+    bool m_visible;
 
     struct GraphicsContextData {
         GraphicsContextData() : program(nullptr), textureEntry(0), matEntry(0),
