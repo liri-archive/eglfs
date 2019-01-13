@@ -107,7 +107,7 @@ bool QEdidParser::parse(const QByteArray &blob)
     identifier = QString::fromLatin1(id, 3);
 
     // Clear manufacturer
-    manufacturer = QString();
+    manufacturer.clear();
 
     // Serial number, will be overwritten by an ASCII descriptor
     // when and if it will be found
@@ -118,7 +118,7 @@ bool QEdidParser::parse(const QByteArray &blob)
     if (serial > 0)
         serialNumber = QString::number(serial);
     else
-        serialNumber = QString();
+        serialNumber.clear();
 
     // Parse EDID data
     for (int i = 0; i < 5; ++i) {
@@ -167,7 +167,7 @@ QString QEdidParser::parseEdidString(const quint8 *data)
 
     // Replace non-printable characters with dash
     for (int i = 0; i < buffer.count(); ++i) {
-        if (buffer[i] < '\040' && buffer[i] > '\176')
+        if (buffer[i] < '\040' || buffer[i] > '\176')
             buffer[i] = '-';
     }
 
