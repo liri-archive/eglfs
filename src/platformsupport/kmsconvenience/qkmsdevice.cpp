@@ -279,7 +279,7 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
         if (m.type & DRM_MODE_TYPE_PREFERRED)
             preferred = i;
 
-        if (m.hdisplay == 1920)
+        if (m.hdisplay == 1920 && m.vdisplay == 1080)
             fullhd = i;
 
         best = i;
@@ -310,7 +310,7 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
         selected_mode = best;
 
     // Force full HD resolution if the selected mode is lower
-    if (fullhd >= 0 && modes[selected_mode].hdisplay < 1920) {
+    if (fullhd >= 0 && modes[selected_mode].hdisplay < 1920 && modes[selected_mode].vdisplay < 1080) {
         qCDebug(qLcKmsDebug) << "Force full HD mode" << fullhd << "because selected mode is"
                              << modes[selected_mode].hdisplay << "x" << modes[selected_mode].vdisplay;
         selected_mode = fullhd;
