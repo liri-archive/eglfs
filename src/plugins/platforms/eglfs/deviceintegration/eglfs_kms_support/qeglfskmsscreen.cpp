@@ -175,10 +175,7 @@ qreal QEglFSKmsScreen::pixelDensity() const
     if (m_scaleFactor > 0)
         return m_scaleFactor;
 
-    const QSize s = geometry().size();
-    if (s.width() <= 1920 && s.height() <= 1080)
-        return 1.0;
-    return qMax(1, qRound(logicalDpi().first / qreal(100)));
+    return qMax(1, int(logicalDpi().first / qreal(100)));
 }
 
 Qt::ScreenOrientation QEglFSKmsScreen::nativeOrientation() const
