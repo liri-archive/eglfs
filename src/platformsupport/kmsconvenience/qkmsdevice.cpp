@@ -260,7 +260,7 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
     int current = -1;
     int configured = -1;
     int best = -1;
-    int fullhd = -1;
+    int autoSelected = -1;
 
     for (int i = modes.size() - 1; i >= 0; i--) {
         const drmModeModeInfo &m = modes.at(i);
@@ -278,9 +278,6 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
 
         if (m.type & DRM_MODE_TYPE_PREFERRED)
             preferred = i;
-
-        if (m.hdisplay == 1920 && m.vdisplay == 1080)
-            fullhd = i;
 
         best = i;
     }
@@ -309,11 +306,35 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
     else if (best >= 0)
         selected_mode = best;
 
-    // Force full HD resolution if the selected mode is lower
-    if (fullhd >= 0 && modes[selected_mode].hdisplay < 1920 && modes[selected_mode].vdisplay < 1080) {
-        qCDebug(qLcKmsDebug) << "Force full HD mode" << fullhd << "because selected mode is"
-                             << modes[selected_mode].hdisplay << "x" << modes[selected_mode].vdisplay;
-        selected_mode = fullhd;
+    // Pick a mode that is at least 1920x1080
+    {
+        const int minimalArea = 1920 * 1080;
+
+        for (int i = modes.size() - 1; i >= 0; i--) {
+            int width = modes[i].hdisplay;
+            int height = modes[i].vdisplay;
+
+            if (width * height >= minimalArea) {
+                autoSelected = i;
+                break;
+            }
+        }
+    }
+
+    // Make sure we select a mode that is at least 1920x1080
+    if (autoSelected >= 0) {
+        int width = modes[selected_mode].hdisplay;
+        int height = modes[selected_mode].vdisplay;
+        int refresh = modes[selected_mode].vrefresh;
+
+        int autoWidth = modes[autoSelected].hdisplay;
+        int autoHeight = modes[autoSelected].vdisplay;
+
+        if (autoWidth * autoHeight > width * height) {
+            qCDebug(qLcKmsDebug) << "Selected mode was" << selected_mode << ":" << width << "x" << height
+                                 << '@' << refresh << "hz for output" << connectorName;
+            selected_mode = autoSelected;
+        }
     }
 
     if (selected_mode < 0) {
