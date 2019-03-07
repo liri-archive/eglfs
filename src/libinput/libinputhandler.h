@@ -55,10 +55,10 @@ struct LIRILIBINPUT_EXPORT LibInputKeyEvent
 struct LIRILIBINPUT_EXPORT LibInputMouseEvent
 {
     QPoint pos;
+    Qt::MouseButton button;
     Qt::MouseButtons buttons;
     Qt::KeyboardModifiers modifiers;
-    int wheelDelta;
-    Qt::Orientation wheelOrientation;
+    QPoint wheelDelta;
 };
 
 struct LIRILIBINPUT_EXPORT LibInputTouchEvent

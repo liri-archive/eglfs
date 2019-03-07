@@ -83,25 +83,28 @@ LibInputManager::LibInputManager(QObject *parent)
             [](const LibInputMouseEvent &e) {
         QWindowSystemInterface::handleMouseEvent(
                     nullptr, e.pos, e.pos, e.buttons,
+                    e.button, QEvent::MouseButtonPress,
                     e.modifiers);
     });
     connect(m_handler, &LibInputHandler::mouseReleased, this,
             [](const LibInputMouseEvent &e) {
         QWindowSystemInterface::handleMouseEvent(
                     nullptr, e.pos, e.pos, e.buttons,
+                    e.button, QEvent::MouseButtonRelease,
                     e.modifiers);
     });
     connect(m_handler, &LibInputHandler::mouseMoved, this,
             [](const LibInputMouseEvent &e) {
         QWindowSystemInterface::handleMouseEvent(
                     nullptr, e.pos, e.pos, e.buttons,
+                    Qt::NoButton, QEvent::MouseMove,
                     e.modifiers);
     });
     connect(m_handler, &LibInputHandler::mouseWheel, this,
             [](const LibInputMouseEvent &e) {
         QWindowSystemInterface::handleWheelEvent(
                     nullptr, e.pos, e.pos,
-                    e.wheelDelta, e.wheelOrientation,
+                    QPoint(), e.wheelDelta,
                     e.modifiers);
     });
     connect(m_handler, &LibInputHandler::touchEvent, this,

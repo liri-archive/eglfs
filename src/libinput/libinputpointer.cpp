@@ -34,13 +34,14 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QScreen>
 #include <QtGui/qpa/qwindowsysteminterface.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/private/qhighdpiscaling_p.h>
+#include <QtGui/private/qinputdevicemanager_p_p.h>
 
 #include "libinputhandler.h"
 #include "libinputpointer.h"
 
 #include <libinput.h>
-
-#include <QtGui/private/qhighdpiscaling_p.h>
 
 namespace Liri {
 
@@ -99,10 +100,10 @@ void LibInputPointer::handleButton(libinput_event_pointer *e)
 
     LibInputMouseEvent event;
     event.pos = m_pt;
+    event.button = button;
     event.buttons = m_buttons;
-    event.modifiers = QGuiApplication::keyboardModifiers();
-    event.wheelDelta = 0;
-    event.wheelOrientation = Qt::Horizontal;
+    event.modifiers = QGuiApplicationPrivate::inputDeviceManager()->keyboardModifiers();
+    event.wheelDelta = QPoint();
     if (libinput_event_pointer_get_button_state(e) == LIBINPUT_BUTTON_STATE_PRESSED)
         Q_EMIT m_handler->mousePressed(event);
     else
@@ -129,18 +130,18 @@ void LibInputPointer::handleAxis(libinput_event_pointer *e)
 {
     LibInputMouseEvent event;
     event.pos = m_pt;
+    event.button = Qt::NoButton;
     event.buttons = m_buttons;
-    event.modifiers = QGuiApplication::keyboardModifiers();
+    event.modifiers = QGuiApplicationPrivate::inputDeviceManager()->keyboardModifiers();
 
     // TODO: Make sensitivity configurable instead of fixed 10
-    const double sensitivity = qBound<double>(1, 10, 100);
+    const int sensitivity = 8;
 
     if (libinput_event_pointer_has_axis(e, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
         const double d =
                 libinput_event_pointer_get_axis_value(e,
                                                       LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-        event.wheelDelta = qRound(-d * sensitivity);
-        event.wheelOrientation = Qt::Horizontal;
+        event.wheelDelta.setX(qRound(d *-sensitivity));
         Q_EMIT m_handler->mouseWheel(event);
     }
 
@@ -148,8 +149,7 @@ void LibInputPointer::handleAxis(libinput_event_pointer *e)
         const double d =
                 libinput_event_pointer_get_axis_value(e,
                                                       LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-        event.wheelDelta = qRound(-d * sensitivity);
-        event.wheelOrientation = Qt::Vertical;
+        event.wheelDelta.setY(qRound(d * -sensitivity));
         Q_EMIT m_handler->mouseWheel(event);
     }
 }
@@ -160,10 +160,10 @@ void LibInputPointer::processMotion(const QPoint &pos)
 
     LibInputMouseEvent event;
     event.pos = m_pt;
+    event.button = Qt::NoButton;
     event.buttons = m_buttons;
-    event.modifiers = QGuiApplication::keyboardModifiers();
-    event.wheelDelta = 0;
-    event.wheelOrientation = Qt::Horizontal;
+    event.modifiers = QGuiApplicationPrivate::inputDeviceManager()->keyboardModifiers();
+    event.wheelDelta = QPoint();
     Q_EMIT m_handler->mouseMoved(event);
 }
 
