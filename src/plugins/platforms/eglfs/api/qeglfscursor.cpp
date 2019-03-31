@@ -59,8 +59,8 @@
 QT_BEGIN_NAMESPACE
 
 QEglFSCursor::QEglFSCursor(QPlatformScreen *screen)
-  : m_visible(true),
-    m_screen(static_cast<QEglFSScreen *>(screen)),
+  : m_screen(static_cast<QEglFSScreen *>(screen)),
+    m_visible(true),
     m_activeScreen(nullptr),
     m_deviceListener(0),
     m_updateRequested(false)
