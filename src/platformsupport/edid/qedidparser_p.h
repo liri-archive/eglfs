@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 Pier Luigi Fiorini <pierluigi.fiorini@gmail.com>
+** Copyright (C) 2017 Pier Luigi Fiorini <pierluigi.fiorini@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -47,9 +47,11 @@
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
+//
+// We mean it.
 //
 
 QT_BEGIN_NAMESPACE
