@@ -58,7 +58,7 @@ void QEglFSKmsDevice::registerScreen(QPlatformScreen *screen,
     QEglFSKmsScreen *s = static_cast<QEglFSKmsScreen *>(screen);
     s->setVirtualPosition(virtualPos);
     s->setVirtualSiblings(virtualSiblings);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
     QWindowSystemInterface::handleScreenAdded(s, isPrimary);
 #else
     static_cast<QEglFSIntegration *>(QGuiApplicationPrivate::platformIntegration())->addScreen(s, isPrimary);
