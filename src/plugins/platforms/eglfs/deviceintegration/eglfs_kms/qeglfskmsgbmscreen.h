@@ -60,7 +60,7 @@ public:
 
     QPlatformCursor *cursor() const override;
 
-    gbm_surface *createSurface();
+    gbm_surface *createSurface(EGLConfig eglConfig);
     void resetSurface();
     void setSurface(gbm_surface *surface);
 

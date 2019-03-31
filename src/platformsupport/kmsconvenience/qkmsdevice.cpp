@@ -398,6 +398,25 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
     if (!cloneSource.isEmpty())
         qCDebug(qLcKmsDebug) << "Output" << connectorName << " clones output " << cloneSource;
 
+    const QByteArray fbsize = userConnectorConfig.value(QStringLiteral("size")).toByteArray().toLower();
+    QSize framebufferSize;
+    framebufferSize.setWidth(modes[selected_mode].hdisplay);
+    framebufferSize.setHeight(modes[selected_mode].vdisplay);
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    if (hasAtomicSupport()) {
+        if (sscanf(fbsize.constData(), "%dx%d", &framebufferSize.rwidth(), &framebufferSize.rheight()) != 2) {
+            qWarning("Framebuffer size format is invalid.");
+        }
+    } else {
+        qWarning("Setting framebuffer size is only available with DRM atomic API");
+    }
+#else
+    if (fbsize.size())
+        qWarning("Setting framebuffer size is only available with DRM atomic API");
+#endif
+    qCDebug(qLcKmsDebug) << "Output" << connectorName << "framebuffer size is " << framebufferSize;
+
     QKmsOutput output;
     output.name = QString::fromUtf8(connectorName);
     output.connector_id = connector->connector_id;
@@ -417,6 +436,17 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
     output.forced_plane_set = false;
     output.drm_format = drmFormat;
     output.clone_source = cloneSource;
+    output.size = framebufferSize;
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    if (drmModeCreatePropertyBlob(m_dri_fd, &modes[selected_mode], sizeof(drmModeModeInfo),
+                                  &output.mode_blob_id) != 0) {
+        qCDebug(qLcKmsDebug) << "Failed to create mode blob for mode" << selected_mode;
+    }
+
+    parseConnectorProperties(output.connector_id, &output);
+    parseCrtcProperties(output.crtc_id, &output);
+#endif
 
     QString planeListStr;
     for (const QKmsPlane &plane : qAsConst(m_planes)) {
@@ -424,6 +454,8 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
             output.available_planes.append(plane);
             planeListStr.append(QString::number(plane.id));
             planeListStr.append(QLatin1Char(' '));
+            if (plane.type == QKmsPlane::PrimaryPlane)
+                output.eglfs_plane = (QKmsPlane*)&plane;
         }
     }
     qCDebug(qLcKmsDebug, "Output %s can use %d planes: %s",
@@ -444,6 +476,12 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
                     output.forced_plane_id = plane->plane_id;
                     qCDebug(qLcKmsDebug, "Forcing plane index %d, plane id %u (belongs to crtc id %u)",
                             idx, plane->plane_id, plane->crtc_id);
+
+                    for (const QKmsPlane &kmsplane : qAsConst(m_planes)) {
+                        if (kmsplane.id == output.forced_plane_id)
+                            output.eglfs_plane = (QKmsPlane*)&kmsplane;
+                    }
+
                     drmModeFreePlane(plane);
                 }
             } else {
@@ -451,6 +489,9 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
             }
         }
     }
+
+    if (output.eglfs_plane)
+        qCDebug(qLcKmsDebug, "Output eglfs plane is: %d", output.eglfs_plane->id);
 
     m_crtc_allocator |= (1 << output.crtc_index);
 
@@ -496,6 +537,11 @@ QKmsDevice::QKmsDevice(QKmsScreenConfig *screenConfig, const QString &path)
     : m_screenConfig(screenConfig)
     , m_path(path)
     , m_dri_fd(-1)
+    , m_has_atomic_support(false)
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    , m_atomic_request(nullptr)
+    , m_previous_request(nullptr)
+#endif
     , m_crtc_allocator(0)
 {
     if (m_path.isEmpty()) {
@@ -510,6 +556,9 @@ QKmsDevice::QKmsDevice(QKmsScreenConfig *screenConfig, const QString &path)
 
 QKmsDevice::~QKmsDevice()
 {
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    atomicReset();
+#endif
 }
 
 struct OrderedScreen
@@ -553,6 +602,14 @@ void QKmsDevice::createScreens()
     }
 
     drmSetClientCap(m_dri_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    // check atomic support
+    m_has_atomic_support = !drmSetClientCap(m_dri_fd, DRM_CLIENT_CAP_ATOMIC, 1)
+                           && qEnvironmentVariableIntValue("QT_QPA_EGLFS_KMS_ATOMIC");
+    if (m_has_atomic_support)
+        qCDebug(qLcKmsDebug) << "Atomic Support found";
+#endif
 
     drmModeResPtr resources = drmModeGetResources(m_dri_fd);
     if (!resources) {
@@ -641,7 +698,7 @@ void QKmsDevice::createScreens()
         } else {
             virtualPos = orderedScreen.vinfo.virtualPos;
         }
-        qCDebug(qLcKmsDebug) << "Adding QPlatformScren" << s << "(" << s->name() << ")"
+        qCDebug(qLcKmsDebug) << "Adding QPlatformScreen" << s << "(" << s->name() << ")"
                              << "to QPA with geometry" << s->geometry()
                              << "and isPrimary=" << orderedScreen.vinfo.isPrimary;
         // The order in qguiapp's screens list will match the order set by
@@ -709,7 +766,7 @@ void QKmsDevice::enumerateProperties(drmModeObjectPropertiesPtr objProps, PropCa
         } else if (propTypeIs(prop, DRM_MODE_PROP_ENUM)) {
             qCDebug(qLcKmsDebug, "  type is ENUM, value is %llu, possible values are:", value);
             for (int i = 0; i < prop->count_enums; ++i)
-                qCDebug(qLcKmsDebug, "    enum %d: %s - %llu", i, prop->enums[i].name, prop->enums[i].value);
+                qCDebug(qLcKmsDebug, "    enum %d: %s - %llu", i, prop->enums[i].name, quint64(prop->enums[i].value));
         } else if (propTypeIs(prop, DRM_MODE_PROP_BITMASK)) {
             qCDebug(qLcKmsDebug, "  type is BITMASK, value is %llu, possible bits are:", value);
             for (int i = 0; i < prop->count_enums; ++i)
@@ -752,9 +809,7 @@ void QKmsDevice::discoverPlanes()
         for (int i = 0; i < countFormats; ++i) {
             uint32_t f = drmplane->formats[i];
             plane.supportedFormats.append(f);
-            QString s;
-            s.sprintf("%c%c%c%c ", f, f >> 8, f >> 16, f >> 24);
-            formatStr += s;
+            formatStr += QString::asprintf("%c%c%c%c ", f, f >> 8, f >> 16, f >> 24);
         }
 
         qCDebug(qLcKmsDebug, "plane %d: id = %u countFormats = %d possibleCrtcs = 0x%x supported formats = %s",
@@ -779,6 +834,28 @@ void QKmsDevice::discoverPlanes()
                         plane.availableRotations |= QKmsPlane::Rotation(1 << prop->enums[i].value);
                 }
                 plane.rotationPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "crtc_id")) {
+                plane.crtcPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "fb_id")) {
+                plane.framebufferPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "src_w")) {
+                plane.srcwidthPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "src_h")) {
+                plane.srcheightPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "crtc_w")) {
+                plane.crtcwidthPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "crtc_h")) {
+                plane.crtcheightPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "src_x")) {
+                plane.srcXPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "src_y")) {
+                plane.srcYPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "crtc_x")) {
+                plane.crtcXPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "crtc_y")) {
+                plane.crtcYPropertyId = prop->prop_id;
+            } else if (!strcasecmp(prop->name, "zpos")) {
+                plane.zposPropertyId = prop->prop_id;
             }
         });
 
@@ -803,6 +880,86 @@ QString QKmsDevice::devicePath() const
 void QKmsDevice::setFd(int fd)
 {
     m_dri_fd = fd;
+}
+
+
+bool QKmsDevice::hasAtomicSupport()
+{
+    return m_has_atomic_support;
+}
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+drmModeAtomicReq * QKmsDevice::atomic_request()
+{
+    if (!m_atomic_request && m_has_atomic_support)
+        m_atomic_request = drmModeAtomicAlloc();
+
+    return m_atomic_request;
+}
+
+bool QKmsDevice::atomicCommit(void *user_data)
+{
+    if (m_atomic_request) {
+        int ret = drmModeAtomicCommit(m_dri_fd, m_atomic_request,
+                          DRM_MODE_ATOMIC_NONBLOCK | DRM_MODE_PAGE_FLIP_EVENT | DRM_MODE_ATOMIC_ALLOW_MODESET, user_data);
+
+        if (ret) {
+           qWarning("Failed to commit atomic request (code=%d)", ret);
+           return false;
+        }
+
+        m_previous_request = m_atomic_request;
+        m_atomic_request = nullptr;
+
+        return true;
+    }
+
+    return false;
+}
+
+void QKmsDevice::atomicReset()
+{
+    if (m_previous_request) {
+        drmModeAtomicFree(m_previous_request);
+        m_previous_request = nullptr;
+    }
+}
+#endif
+
+void QKmsDevice::parseConnectorProperties(uint32_t connectorId, QKmsOutput *output)
+{
+    drmModeObjectPropertiesPtr objProps = drmModeObjectGetProperties(m_dri_fd, connectorId, DRM_MODE_OBJECT_CONNECTOR);
+    if (!objProps) {
+        qCDebug(qLcKmsDebug, "Failed to query connector %d object properties", connectorId);
+        return;
+    }
+
+    enumerateProperties(objProps, [output](drmModePropertyPtr prop, quint64 value) {
+        Q_UNUSED(value);
+        if (!strcasecmp(prop->name, "crtc_id"))
+            output->crtcIdPropertyId = prop->prop_id;
+    });
+
+    drmModeFreeObjectProperties(objProps);
+}
+
+void QKmsDevice::parseCrtcProperties(uint32_t crtcId, QKmsOutput *output)
+{
+    drmModeObjectPropertiesPtr objProps = drmModeObjectGetProperties(m_dri_fd, crtcId, DRM_MODE_OBJECT_CRTC);
+    if (!objProps) {
+        qCDebug(qLcKmsDebug, "Failed to query crtc %d object properties", crtcId);
+        return;
+    }
+
+    enumerateProperties(objProps, [output](drmModePropertyPtr prop, quint64 value) {
+        Q_UNUSED(value)
+        if (!strcasecmp(prop->name, "mode_id"))
+            output->modeIdPropertyId = prop->prop_id;
+        else if (!strcasecmp(prop->name, "active"))
+            output->activePropertyId = prop->prop_id;
+    });
+
+    drmModeFreeObjectProperties(objProps);
 }
 
 QKmsScreenConfig *QKmsDevice::screenConfig() const

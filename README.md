@@ -46,6 +46,10 @@ make install # use sudo if necessary
 Replace `/path/to/prefix` to your installation prefix.
 Default is `/usr/local`.
 
+You can also append the following options to the `cmake` command:
+
+ * `-DEGLFS_DRM_ATOMIC:BOOL=OFF`: Disable DRM atomic support.
+
 ## Environment variables
 
 The liri QPA plugin supports different graphics hardware through EGL

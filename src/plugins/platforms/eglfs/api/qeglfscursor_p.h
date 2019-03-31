@@ -56,6 +56,7 @@
 #include <qpa/qplatformscreen.h>
 #include <QtGui/QMatrix4x4>
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/private/qinputdevicemanager_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -80,6 +81,15 @@ private:
 };
 
 #if QT_CONFIG(opengl)
+
+struct QEglFSCursorData {
+    QScopedPointer<QOpenGLShaderProgram> program;
+    int textureEntry = 0;
+    int matEntry = 0;
+    uint customCursorTexture = 0;
+    uint atlasTexture = 0;
+    qint64 customCursorKey = 0;
+};
 
 class Q_EGLFS_EXPORT QEglFSCursor : public QPlatformCursor
                                   , protected QOpenGLFunctions

@@ -46,7 +46,9 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QOpenGLFunctions_3_0>
+
 #include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/private/qtguiglobal_p.h>
 #include <QtFbSupport/private/qfbvthandler_p.h>
 
 #include <LiriLogind/LiriLogind>
@@ -172,16 +174,32 @@ QPlatformCursor *QEglFSKmsGbmScreen::cursor() const
     }
 }
 
-gbm_surface *QEglFSKmsGbmScreen::createSurface()
+gbm_surface *QEglFSKmsGbmScreen::createSurface(EGLConfig eglConfig)
 {
     if (!m_gbm_surface) {
-        uint32_t gbmFormat = drmFormatToGbmFormat(m_output.drm_format);
-        qCDebug(qLcEglfsKmsDebug, "Creating gbm_surface for screen %s with format 0x%x", qPrintable(name()), gbmFormat);
-        m_gbm_surface = gbm_surface_create(static_cast<QEglFSKmsGbmDevice *>(device())->gbmDevice(),
+        qCDebug(qLcEglfsKmsDebug, "Creating gbm_surface for screen %s", qPrintable(name()));
+
+        const auto gbmDevice = static_cast<QEglFSKmsGbmDevice *>(device())->gbmDevice();
+        EGLint native_format = -1;
+        EGLBoolean success = eglGetConfigAttrib(display(), eglConfig, EGL_NATIVE_VISUAL_ID, &native_format);
+        qCDebug(qLcEglfsKmsDebug) << "Got native format" << hex << native_format << dec << "from eglGetConfigAttrib() with return code" << bool(success);
+
+        if (success)
+            m_gbm_surface = gbm_surface_create(gbmDevice,
+                                           rawGeometry().width(),
+                                           rawGeometry().height(),
+                                           native_format,
+                                           GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+
+        if (!m_gbm_surface) { // fallback for older drivers
+            uint32_t gbmFormat = drmFormatToGbmFormat(m_output.drm_format);
+            qCDebug(qLcEglfsKmsDebug, "Could not create surface with EGL_NATIVE_VISUAL_ID, falling back to format %x", gbmFormat);
+            m_gbm_surface = gbm_surface_create(gbmDevice,
                                            rawGeometry().width(),
                                            rawGeometry().height(),
                                            gbmFormat,
                                            GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+        }
     }
     return m_gbm_surface; // not owned, gets destroyed in QEglFSKmsGbmIntegration::destroyNativeWindow() via QEglFSKmsGbmWindow::invalidateSurface()
 }
@@ -239,17 +257,29 @@ void QEglFSKmsGbmScreen::ensureModeSet(uint32_t fb)
 
         if (doModeSet) {
             qCDebug(qLcEglfsKmsDebug, "Setting mode for screen %s", qPrintable(name()));
-            int ret = drmModeSetCrtc(fd,
-                                     op.crtc_id,
-                                     fb,
-                                     0, 0,
-                                     &op.connector_id, 1,
-                                     &op.modes[op.mode]);
 
-            if (ret == 0)
-                setPowerState(PowerStateOn);
-            else
-                qErrnoWarning(errno, "Could not set DRM mode for screen %s", qPrintable(name()));
+            if (device()->hasAtomicSupport()) {
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+                drmModeAtomicReq *request = device()->atomic_request();
+                if (request) {
+                    drmModeAtomicAddProperty(request, op.connector_id, op.crtcIdPropertyId, op.crtc_id);
+                    drmModeAtomicAddProperty(request, op.crtc_id, op.modeIdPropertyId, op.mode_blob_id);
+                    drmModeAtomicAddProperty(request, op.crtc_id, op.activePropertyId, 1);
+                }
+#endif
+            } else {
+                int ret = drmModeSetCrtc(fd,
+                                         op.crtc_id,
+                                         fb,
+                                         0, 0,
+                                         &op.connector_id, 1,
+                                         &op.modes[op.mode]);
+
+                if (ret == 0)
+                    setPowerState(PowerStateOn);
+                else
+                    qErrnoWarning(errno, "Could not set DRM mode for screen %s", qPrintable(name()));
+            }
         }
     }
 }
@@ -276,6 +306,11 @@ void QEglFSKmsGbmScreen::waitForFlip()
         drmEvent.page_flip_handler = pageFlipHandler;
         drmHandleEvent(device()->fd(), &drmEvent);
     }
+
+#if EGLFS_ENABLE_DRM_ATOMIC
+    if (device()->hasAtomicSupport())
+        device()->atomicReset();
+#endif
 }
 
 void QEglFSKmsGbmScreen::flip()
@@ -316,34 +351,79 @@ void QEglFSKmsGbmScreen::flip()
     QKmsOutput &op(output());
     const int fd = device()->fd();
     m_flipPending = true;
-    int ret = drmModePageFlip(fd,
+
+    if (device()->hasAtomicSupport()) {
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+        drmModeAtomicReq *request = device()->atomic_request();
+        if (request) {
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->framebufferPropertyId, fb->fb);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->crtcPropertyId, op.crtc_id);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->srcwidthPropertyId,
+                                     output().size.width() << 16);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->srcXPropertyId, 0);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->srcYPropertyId, 0);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->srcheightPropertyId,
+                                     output().size.height() << 16);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->crtcXPropertyId, 0);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->crtcYPropertyId, 0);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->crtcwidthPropertyId,
+                                     m_output.modes[m_output.mode].hdisplay);
+            drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->crtcheightPropertyId,
+                                     m_output.modes[m_output.mode].vdisplay);
+
+            static int zpos = qEnvironmentVariableIntValue("QT_QPA_EGLFS_KMS_ZPOS");
+            if (zpos)
+                drmModeAtomicAddProperty(request, op.eglfs_plane->id, op.eglfs_plane->zposPropertyId, zpos);
+        }
+#endif
+    } else {
+        int ret = drmModePageFlip(fd,
                               op.crtc_id,
                               fb->fb,
                               DRM_MODE_PAGE_FLIP_EVENT,
                               this);
-    if (ret) {
-        qErrnoWarning("Could not queue DRM page flip on screen %s", qPrintable(name()));
-        m_flipPending = false;
-        gbm_surface_release_buffer(m_gbm_surface, m_gbm_bo_next);
-        m_gbm_bo_next = nullptr;
-        return;
+        if (ret) {
+            qErrnoWarning("Could not queue DRM page flip on screen %s", qPrintable(name()));
+            m_flipPending = false;
+            gbm_surface_release_buffer(m_gbm_surface, m_gbm_bo_next);
+            m_gbm_bo_next = nullptr;
+            return;
+        }
     }
 
     for (CloneDestination &d : m_cloneDests) {
         if (d.screen != this) {
             d.screen->ensureModeSet(fb->fb);
             d.cloneFlipPending = true;
-            int ret = drmModePageFlip(fd,
-                                      d.screen->output().crtc_id,
-                                      fb->fb,
-                                      DRM_MODE_PAGE_FLIP_EVENT,
-                                      d.screen);
-            if (ret) {
-                qErrnoWarning("Could not queue DRM page flip for clone screen %s", qPrintable(name()));
-                d.cloneFlipPending = false;
+
+            if (device()->hasAtomicSupport()) {
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+                drmModeAtomicReq *request = device()->atomic_request();
+                if (request) {
+                    drmModeAtomicAddProperty(request, d.screen->output().eglfs_plane->id,
+                                                      d.screen->output().eglfs_plane->framebufferPropertyId, fb->fb);
+                    drmModeAtomicAddProperty(request, d.screen->output().eglfs_plane->id,
+                                                      d.screen->output().eglfs_plane->crtcPropertyId, op.crtc_id);
+                }
+#endif
+            } else {
+                int ret = drmModePageFlip(fd,
+                                          d.screen->output().crtc_id,
+                                          fb->fb,
+                                          DRM_MODE_PAGE_FLIP_EVENT,
+                                          d.screen);
+                if (ret) {
+                    qErrnoWarning("Could not queue DRM page flip for clone screen %s", qPrintable(name()));
+                    d.cloneFlipPending = false;
+                }
             }
         }
     }
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    if (device()->hasAtomicSupport())
+         device()->atomicCommit(this);
+#endif
 }
 
 void QEglFSKmsGbmScreen::recordFrame(EGLClientBuffer bo, int width, int height)
@@ -443,7 +523,7 @@ void QEglFSKmsGbmScreen::updateFlipStatus()
     if (m_flipPending)
         return;
 
-    for (const CloneDestination &d : m_cloneDests) {
+    for (const CloneDestination &d : qAsConst(m_cloneDests)) {
         if (d.cloneFlipPending)
             return;
     }

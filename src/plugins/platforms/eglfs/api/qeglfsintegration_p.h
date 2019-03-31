@@ -113,8 +113,10 @@ public:
 
     Liri::Platform::VtHandler *vtHandler() { return m_vtHandler.data(); }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
     void addScreen(QPlatformScreen *screen, bool isPrimary = false);
     void removeScreen(QPlatformScreen *screen);
+#endif
 
 private:
     EGLNativeDisplayType nativeDisplay() const;

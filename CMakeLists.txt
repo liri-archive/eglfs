@@ -21,6 +21,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;${CMAKE_CURRENT
 ## Liri specific setup common for all modules:
 include(LiriSetup)
 
+## Features:
+option(EGLFS_DRM_ATOMIC "DRM atomic support" ON)
+add_feature_info("EglFS::DrmAtomic" EGLFS_DRM_ATOMIC "Build eglfs with DRM atomic support")
+
 ## Find Qt 5:
 find_package(Qt5 "${QT_MIN_VERSION}"
     CONFIG REQUIRED

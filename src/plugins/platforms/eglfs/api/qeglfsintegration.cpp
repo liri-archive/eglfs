@@ -107,6 +107,7 @@ QEglFSIntegration::QEglFSIntegration()
     initResources();
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
 void QEglFSIntegration::addScreen(QPlatformScreen *screen, bool isPrimary)
 {
     screenAdded(screen, isPrimary);
@@ -116,6 +117,7 @@ void QEglFSIntegration::removeScreen(QPlatformScreen *screen)
 {
     destroyScreen(screen);
 }
+#endif
 
 void QEglFSIntegration::initialize()
 {
@@ -136,7 +138,11 @@ void QEglFSIntegration::initialize()
         m_vtHandler.reset(new VtHandler);
 
         if (qt_egl_device_integration()->usesDefaultScreen())
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+            QWindowSystemInterface::handleScreenAdded(new QEglFSScreen(display()));
+#else
             addScreen(new QEglFSScreen(display()));
+#endif
         else
             qt_egl_device_integration()->screenInit();
 
@@ -327,7 +333,7 @@ void *QEglFSIntegration::nativeResourceForIntegration(const QByteArray &resource
     return result;
 }
 
-void *QEglFSIntegration::nativeResourceForScreen(const QByteArray &resource, QScreen *)
+void *QEglFSIntegration::nativeResourceForScreen(const QByteArray &resource, QScreen *screen)
 {
     void *result = 0;
 
@@ -338,6 +344,7 @@ void *QEglFSIntegration::nativeResourceForScreen(const QByteArray &resource, QSc
         result = reinterpret_cast<void*>(nativeDisplay());
         break;
     default:
+        result = qt_egl_device_integration()->nativeResourceForScreen(resource, screen);
         break;
     }
 

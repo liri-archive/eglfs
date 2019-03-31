@@ -51,7 +51,9 @@
 #include <private/qguiapplication_p.h>
 #include <QScreen>
 #include <QDir>
-#include <QRegularExpression>
+#if QT_CONFIG(regularexpression)
+#  include <QRegularExpression>
+#endif
 #include <QLoggingCategory>
 
 #if defined(Q_OS_LINUX)
@@ -140,7 +142,7 @@ QByteArray QEglFSDeviceIntegration::fbDeviceName() const
 int QEglFSDeviceIntegration::framebufferIndex() const
 {
     int fbIndex = 0;
-#ifndef QT_NO_REGULAREXPRESSION
+#if QT_CONFIG(regularexpression)
     QRegularExpression fbIndexRx(QLatin1String("fb(\\d+)"));
     QRegularExpressionMatch match = fbIndexRx.match(QString::fromLocal8Bit(fbDeviceName()));
     if (match.hasMatch())
@@ -198,10 +200,16 @@ void QEglFSDeviceIntegration::screenInit()
 void QEglFSDeviceIntegration::screenDestroy()
 {
     QGuiApplication *app = qGuiApp;
+#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
     QEglFSIntegration *platformIntegration = static_cast<QEglFSIntegration *>(
         QGuiApplicationPrivate::platformIntegration());
+#endif
     while (!app->screens().isEmpty())
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+        QWindowSystemInterface::handleScreenRemoved(app->screens().constLast()->handle());
+#else
         platformIntegration->removeScreen(app->screens().constLast()->handle());
+#endif
 }
 
 QSizeF QEglFSDeviceIntegration::physicalScreenSize() const
@@ -360,6 +368,13 @@ QFunctionPointer QEglFSDeviceIntegration::platformFunction(const QByteArray &fun
 void *QEglFSDeviceIntegration::nativeResourceForIntegration(const QByteArray &name)
 {
     Q_UNUSED(name);
+    return nullptr;
+}
+
+void *QEglFSDeviceIntegration::nativeResourceForScreen(const QByteArray &resource, QScreen *screen)
+{
+    Q_UNUSED(resource);
+    Q_UNUSED(screen);
     return nullptr;
 }
 

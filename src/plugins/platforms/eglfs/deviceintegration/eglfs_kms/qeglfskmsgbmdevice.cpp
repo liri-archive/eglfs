@@ -94,6 +94,7 @@ bool QEglFSKmsGbmDevice::open()
     if (!m_gbm_device) {
         qErrnoWarning("Could not create GBM device");
         logind->releaseDevice(fd);
+        fd = -1;
         return false;
     }
 

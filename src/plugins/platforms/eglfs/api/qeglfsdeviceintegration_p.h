@@ -63,7 +63,7 @@ QT_BEGIN_NAMESPACE
 class QPlatformSurface;
 class QEglFSWindow;
 
-#define QEglFSDeviceIntegrationFactoryInterface_iid "io.liri.qpa.egl.EglFSDeviceIntegrationFactoryInterface.1.0"
+#define QEglFSDeviceIntegrationFactoryInterface_iid "org.qt-project.qt.qpa.egl.QEglFSDeviceIntegrationFactoryInterface.5.5"
 
 class Q_EGLFS_EXPORT QEglFSDeviceIntegration
 {
@@ -105,7 +105,7 @@ public:
     virtual bool supportsSurfacelessContexts() const;
     virtual QFunctionPointer platformFunction(const QByteArray &function) const;
     virtual void *nativeResourceForIntegration(const QByteArray &name);
-
+    virtual void *nativeResourceForScreen(const QByteArray &resource, QScreen *screen);
     virtual void *wlDisplay() const;
 
     static EGLConfig chooseConfig(EGLDisplay display, const QSurfaceFormat &format);

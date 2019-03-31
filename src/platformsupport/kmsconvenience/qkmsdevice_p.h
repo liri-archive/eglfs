@@ -53,6 +53,7 @@
 // We mean it.
 //
 
+#include <QtGui/private/qtguiglobal_p.h>
 #include <qpa/qplatformscreen.h>
 #include <QtCore/QMap>
 #include <QtCore/QVariant>
@@ -166,6 +167,17 @@ struct QKmsPlane
     Rotations initialRotation = Rotation0;
     Rotations availableRotations = Rotation0;
     uint32_t rotationPropertyId = 0;
+    uint32_t crtcPropertyId = 0;
+    uint32_t framebufferPropertyId = 0;
+    uint32_t srcXPropertyId = 0;
+    uint32_t srcYPropertyId = 0;
+    uint32_t crtcXPropertyId = 0;
+    uint32_t crtcYPropertyId = 0;
+    uint32_t srcwidthPropertyId = 0;
+    uint32_t srcheightPropertyId = 0;
+    uint32_t crtcwidthPropertyId = 0;
+    uint32_t crtcheightPropertyId = 0;
+    uint32_t zposPropertyId = 0;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QKmsPlane::Rotations)
@@ -191,6 +203,13 @@ struct QKmsOutput
     uint32_t drm_format = DRM_FORMAT_XRGB8888;
     QString clone_source;
     QVector<QKmsPlane> available_planes;
+    struct QKmsPlane *eglfs_plane = nullptr;
+    QSize size;
+    uint32_t crtcIdPropertyId = 0;
+    uint32_t modeIdPropertyId = 0;
+    uint32_t activePropertyId = 0;
+
+    uint32_t mode_blob_id = 0;
 
     void restoreMode(QKmsDevice *device);
     void cleanup(QKmsDevice *device);
@@ -215,6 +234,14 @@ public:
     virtual void close() = 0;
     virtual void *nativeDisplay() const = 0;
 
+    bool hasAtomicSupport();
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    bool atomicCommit(void *user_data);
+    void atomicReset();
+
+    drmModeAtomicReq *atomic_request();
+#endif
     void createScreens();
 
     int fd() const;
@@ -243,11 +270,19 @@ protected:
     typedef std::function<void(drmModePropertyPtr, quint64)> PropCallback;
     void enumerateProperties(drmModeObjectPropertiesPtr objProps, PropCallback callback);
     void discoverPlanes();
+    void parseConnectorProperties(uint32_t connectorId, QKmsOutput *output);
+    void parseCrtcProperties(uint32_t crtcId, QKmsOutput *output);
 
     QKmsScreenConfig *m_screenConfig;
     QString m_path;
     int m_dri_fd;
 
+    bool m_has_atomic_support;
+
+#ifdef EGLFS_ENABLE_DRM_ATOMIC
+    drmModeAtomicReq *m_atomic_request;
+    drmModeAtomicReq *m_previous_request;
+#endif
     quint32 m_crtc_allocator;
 
     QVector<QKmsPlane> m_planes;

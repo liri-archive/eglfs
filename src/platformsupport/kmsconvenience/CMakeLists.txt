@@ -1,5 +1,9 @@
 find_package(Libdrm REQUIRED)
 
+if(EGLFS_DRM_ATOMIC)
+    set(DEFINES EGLFS_ENABLE_DRM_ATOMIC)
+endif()
+
 liri_add_module(KmsSupport
     DESCRIPTION
         "KMS shared code"
@@ -11,6 +15,7 @@ liri_add_module(KmsSupport
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_FOREACH
+        ${DEFINES}
     LIBRARIES
         Qt5::Core
         Qt5::CorePrivate

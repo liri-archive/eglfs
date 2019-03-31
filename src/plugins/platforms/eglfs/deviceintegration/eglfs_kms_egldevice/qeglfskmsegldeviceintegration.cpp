@@ -47,6 +47,17 @@
 #include <QLoggingCategory>
 #include <private/qmath_p.h>
 
+#ifndef EGL_EXT_stream_acquire_mode
+#define EGL_EXT_stream_acquire_mode 1
+#define EGL_CONSUMER_AUTO_ACQUIRE_EXT         0x332B
+#define EGL_RESOURCE_BUSY_EXT                 0x3353
+#endif
+
+#ifndef EGL_NV_output_drm_flip_event
+#define EGL_NV_output_drm_flip_event 1
+#define EGL_DRM_FLIP_EVENT_DATA_NV            0x333E
+#endif
+
 QT_BEGIN_NAMESPACE
 
 QEglFSKmsEglDeviceIntegration::QEglFSKmsEglDeviceIntegration()
@@ -114,14 +125,18 @@ public:
         : QEglFSWindow(w)
         , m_integration(integration)
         , m_egl_stream(EGL_NO_STREAM_KHR)
+        , m_framePending(false)
     { }
 
     void invalidateSurface() override;
     void resetSurface() override;
+    void flip();
+    static void pageFlipHandler(int fd, unsigned int sequence, unsigned int tv_sec, unsigned int tv_usec, void *user_data);
 
     const QEglFSKmsEglDeviceIntegration *m_integration;
     EGLStreamKHR m_egl_stream;
     EGLint m_latency;
+    bool m_framePending;
 };
 
 void QEglFSKmsEglDeviceWindow::invalidateSurface()
@@ -142,6 +157,9 @@ void QEglFSKmsEglDeviceWindow::resetSurface()
         streamAttribs[streamAttribCount++] = EGL_STREAM_FIFO_LENGTH_KHR;
         streamAttribs[streamAttribCount++] = fifoLength;
     }
+
+    streamAttribs[streamAttribCount++] = EGL_CONSUMER_AUTO_ACQUIRE_EXT;
+    streamAttribs[streamAttribCount++] = EGL_FALSE;
     streamAttribs[streamAttribCount++] = EGL_NONE;
 
     m_egl_stream = m_integration->m_funcs->create_stream(display, streamAttribs);
@@ -239,6 +257,49 @@ void QEglFSKmsEglDeviceWindow::resetSurface()
     qCDebug(qLcEglfsKmsDebug, "Created stream producer surface %p", m_surface);
 }
 
+void QEglFSKmsEglDeviceWindow::flip()
+{
+    EGLDisplay display = screen()->display();
+
+    EGLAttrib acquire_attribs[3] = { EGL_NONE };
+
+    acquire_attribs[0] = EGL_DRM_FLIP_EVENT_DATA_NV;
+    acquire_attribs[1] = (EGLAttrib)this;
+    acquire_attribs[2] = EGL_NONE;
+
+    if (m_egl_stream != EGL_NO_STREAM_KHR)
+        if (!m_integration->m_funcs->acquire_stream_attrib_nv(display, m_egl_stream, acquire_attribs))
+            qWarning("eglStreamConsumerAcquireAttribNV failed: eglError: %x", eglGetError());
+
+    m_framePending = true;
+
+    while (m_framePending) {
+        drmEventContext drmEvent;
+        memset(&drmEvent, 0, sizeof(drmEvent));
+        drmEvent.version = 3;
+        drmEvent.vblank_handler = nullptr;
+        drmEvent.page_flip_handler = pageFlipHandler;
+        drmHandleEvent(m_integration->m_device->fd(), &drmEvent);
+    }
+}
+
+void QEglFSKmsEglDeviceWindow::pageFlipHandler(int fd, unsigned int sequence, unsigned int tv_sec, unsigned int tv_usec, void *user_data)
+{
+    Q_UNUSED(fd);
+    Q_UNUSED(sequence);
+    Q_UNUSED(tv_sec);
+    Q_UNUSED(tv_usec);
+
+    QEglFSKmsEglDeviceWindow *window = static_cast<QEglFSKmsEglDeviceWindow*>(user_data);
+    window->m_framePending = false;
+}
+
+void QEglFSKmsEglDeviceIntegration::presentBuffer(QPlatformSurface *surface)
+{
+    QEglFSKmsEglDeviceWindow *eglWindow = static_cast<QEglFSKmsEglDeviceWindow*>(surface);
+    eglWindow->flip();
+}
+
 QEglFSWindow *QEglFSKmsEglDeviceIntegration::createWindow(QWindow *window) const
 {
     QEglFSKmsEglDeviceWindow *eglWindow = new QEglFSKmsEglDeviceWindow(window, this);
@@ -260,7 +321,7 @@ QKmsDevice *QEglFSKmsEglDeviceIntegration::createDevice()
     if (Q_UNLIKELY(!deviceName))
         qFatal("Failed to query device name from EGLDevice");
 
-    return new QEglFSKmsEglDevice(this, screenConfig(), QString::fromLocal8Bit(deviceName));
+    return new QEglFSKmsEglDevice(this, screenConfig(), QLatin1String(deviceName));
 }
 
 bool QEglFSKmsEglDeviceIntegration::query_egl_device()
@@ -289,7 +350,9 @@ QPlatformCursor *QEglFSKmsEglDeviceIntegration::createCursor(QPlatformScreen *sc
 {
 #if QT_CONFIG(opengl)
     if (screenConfig()->separateScreens())
-        return  new QEglFSCursor(screen);
+        return new QEglFSCursor(screen);
+#else
+    Q_UNUSED(screen);
 #endif
     return nullptr;
 }

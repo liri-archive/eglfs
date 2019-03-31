@@ -114,10 +114,9 @@ QRect QEglFSKmsScreen::rawGeometry() const
     if (m_headless)
         return QRect(QPoint(0, 0), m_device->screenConfig()->headlessSize());
 
-    const int mode = m_output.mode;
     return QRect(m_pos.x(), m_pos.y(),
-                 m_output.modes[mode].hdisplay,
-                 m_output.modes[mode].vdisplay);
+                 m_output.size.width(),
+                 m_output.size.height());
 }
 
 int QEglFSKmsScreen::depth() const
@@ -250,6 +249,7 @@ void QEglFSKmsScreen::setCurrentMode(int modeIndex)
 
     m_output.mode = modeIndex;
     m_output.mode_set = false;
+    m_output.size = QSize(m_output.modes[modeIndex].hdisplay, m_output.modes[modeIndex].vdisplay);
 }
 
 int QEglFSKmsScreen::preferredMode() const

@@ -26,6 +26,10 @@ if(NOT TARGET Liri::Logind)
     find_package(Liri1Logind REQUIRED)
 endif()
 
+if(EGLFS_DRM_ATOMIC)
+    set(DEFINES EGLFS_ENABLE_DRM_ATOMIC)
+endif()
+
 liri_add_module(EglFSDeviceIntegration
     DESCRIPTION
         "EGL device integration"
@@ -69,6 +73,7 @@ liri_add_module(EglFSDeviceIntegration
     DEFINES
         QT_NO_CAST_FROM_ASCII
         #QT_NO_FOREACH
+        ${DEFINES}
     RESOURCES
         cursor.qrc
     PUBLIC_INCLUDE_DIRECTORIES
