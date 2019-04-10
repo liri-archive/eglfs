@@ -26,4 +26,4 @@
 
 #include "logging_p.h"
 
-Q_LOGGING_CATEGORY(lcInput, "liri.qpa.input")
+Q_LOGGING_CATEGORY(lcInput, "liri.qpa.input", QtInfoMsg)

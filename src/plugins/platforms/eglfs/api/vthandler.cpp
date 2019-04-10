@@ -57,7 +57,7 @@ extern "C" {
 
 #define VT_HANDLER_LOGIND 1
 
-Q_LOGGING_CATEGORY(lcVtHandler, "liri.qpa.vthandler")
+Q_LOGGING_CATEGORY(lcVtHandler, "liri.qpa.vthandler", QtInfoMsg)
 
 using namespace Liri;
 
