@@ -698,9 +698,6 @@ void QKmsDevice::createScreens()
         } else {
             virtualPos = orderedScreen.vinfo.virtualPos;
         }
-        qCDebug(qLcKmsDebug) << "Adding QPlatformScreen" << s << "(" << s->name() << ")"
-                             << "to QPA with geometry" << s->geometry()
-                             << "and isPrimary=" << orderedScreen.vinfo.isPrimary;
         // The order in qguiapp's screens list will match the order set by
         // virtualIndex. This is not only handy but also required since for instance
         // evdevtouch relies on it when performing touch device - screen mapping.

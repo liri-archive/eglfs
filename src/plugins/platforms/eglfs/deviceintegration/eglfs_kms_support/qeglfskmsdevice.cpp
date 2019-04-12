@@ -39,6 +39,7 @@
 ****************************************************************************/
 
 #include "qeglfskmsdevice.h"
+#include "qeglfskmsintegration.h"
 #include "qeglfskmsscreen.h"
 #include "private/qeglfsintegration_p.h"
 #include <QtGui/private/qguiapplication_p.h>
@@ -63,6 +64,10 @@ void QEglFSKmsDevice::registerScreen(QPlatformScreen *screen,
 #else
     static_cast<QEglFSIntegration *>(QGuiApplicationPrivate::platformIntegration())->addScreen(s, isPrimary);
 #endif
+
+    qCInfo(qLcEglfsKmsDebug) << "Adding QPlatformScreen" << s << "(" << s->name() << ")"
+                             << "to QPA with geometry" << s->geometry()
+                             << "and isPrimary=" << isPrimary;
 }
 
 QT_END_NAMESPACE
