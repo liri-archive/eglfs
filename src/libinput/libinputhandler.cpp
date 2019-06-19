@@ -62,6 +62,9 @@ LibInputHandlerPrivate::LibInputHandlerPrivate()
     , gestureCount(0)
     , suspended(false)
 {
+    qRegisterMetaType<LibInputKeyEvent>("LibInputKeyEvent");
+    qRegisterMetaType<LibInputMouseEvent>("LibInputMouseEvent");
+    qRegisterMetaType<LibInputTouchEvent>("LibInputTouchEvent");
 }
 
 LibInputHandlerPrivate::~LibInputHandlerPrivate()

@@ -107,16 +107,16 @@ Q_SIGNALS:
     void touchDeviceRegistered(QTouchDevice *td);
     void touchDeviceUnregistered(QTouchDevice *td);
 
-    void keyPressed(const LibInputKeyEvent &event);
-    void keyReleased(const LibInputKeyEvent &event);
+    void keyPressed(const Liri::Platform::LibInputKeyEvent &event);
+    void keyReleased(const Liri::Platform::LibInputKeyEvent &event);
 
-    void mousePressed(const LibInputMouseEvent &event);
-    void mouseReleased(const LibInputMouseEvent &event);
-    void mouseMoved(const LibInputMouseEvent &event);
-    void mouseWheel(const LibInputMouseEvent &event);
+    void mousePressed(const Liri::Platform::LibInputMouseEvent &event);
+    void mouseReleased(const Liri::Platform::LibInputMouseEvent &event);
+    void mouseMoved(const Liri::Platform::LibInputMouseEvent &event);
+    void mouseWheel(const Liri::Platform::LibInputMouseEvent &event);
 
-    void touchEvent(const LibInputTouchEvent &event);
-    void touchCancel(const LibInputTouchEvent &event);
+    void touchEvent(const Liri::Platform::LibInputTouchEvent &event);
+    void touchCancel(const Liri::Platform::LibInputTouchEvent &event);
 
 private Q_SLOTS:
     void handleEvents();
@@ -127,5 +127,9 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(LibInputHandler::Capabilities)
 } // namespace Platform
 
 } // namespace Liri
+
+Q_DECLARE_METATYPE(Liri::Platform::LibInputKeyEvent)
+Q_DECLARE_METATYPE(Liri::Platform::LibInputMouseEvent)
+Q_DECLARE_METATYPE(Liri::Platform::LibInputTouchEvent)
 
 #endif // LIRI_LIBINPUTHANDLER_H
