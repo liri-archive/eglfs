@@ -143,7 +143,7 @@ int QEglFSDeviceIntegration::framebufferIndex() const
 {
     int fbIndex = 0;
 #if QT_CONFIG(regularexpression)
-    QRegularExpression fbIndexRx(QLatin1String("fb(\\d+)"));
+    QRegularExpression fbIndexRx(QStringLiteral("fb(\\d+)"));
     QRegularExpressionMatch match = fbIndexRx.match(QString::fromLocal8Bit(fbDeviceName()));
     if (match.hasMatch())
         fbIndex = match.captured(1).toInt();

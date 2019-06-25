@@ -108,8 +108,7 @@ LibInputKeyboard::LibInputKeyboard(LibInputHandler *handler, QObject *parent)
     : QObject(*new LibInputKeyboardPrivate(handler), parent)
 {
     Q_D(LibInputKeyboard);
-    connect(&d->repeatTimer, SIGNAL(timeout()),
-            this, SLOT(handleRepeat()));
+    connect(&d->repeatTimer, &QTimer::timeout, this, &LibInputKeyboard::handleRepeat);
 }
 
 void LibInputKeyboard::handleKey(libinput_event_keyboard *event)

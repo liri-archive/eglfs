@@ -91,7 +91,7 @@ void LibInputHandlerPrivate::setup()
     // Receive events
     int fd = libinput_get_fd(li);
     QSocketNotifier *notifier = new QSocketNotifier(fd, QSocketNotifier::Read, q);
-    q->connect(notifier, SIGNAL(activated(int)), q, SLOT(handleEvents()));
+    q->connect(notifier, &QSocketNotifier::activated, q, &LibInputHandler::handleEvents);
 
     // Suspend/resume when the session is activated or deactivated
     Logind *logind = Logind::instance();
