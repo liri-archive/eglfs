@@ -453,6 +453,8 @@ void QEglFSKmsGbmScreen::recordFrame(EGLClientBuffer bo, int width, int height)
     // OpenGL 3.0 functions
     auto glContext = QOpenGLContext::currentContext();
     auto funcs = glContext->versionFunctions<QOpenGLFunctions_3_0>();
+    if (!funcs)
+        return;
 
     // Bind framebuffer to copy pixels from
     GLuint framebuffer;
