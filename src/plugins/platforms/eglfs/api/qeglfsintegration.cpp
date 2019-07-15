@@ -107,7 +107,7 @@ QEglFSIntegration::QEglFSIntegration()
     initResources();
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 3)
 void QEglFSIntegration::addScreen(QPlatformScreen *screen, bool isPrimary)
 {
     screenAdded(screen, isPrimary);
@@ -138,7 +138,7 @@ void QEglFSIntegration::initialize()
         m_vtHandler.reset(new VtHandler);
 
         if (qt_egl_device_integration()->usesDefaultScreen())
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
             QWindowSystemInterface::handleScreenAdded(new QEglFSScreen(display()));
 #else
             addScreen(new QEglFSScreen(display()));

@@ -200,12 +200,12 @@ void QEglFSDeviceIntegration::screenInit()
 void QEglFSDeviceIntegration::screenDestroy()
 {
     QGuiApplication *app = qGuiApp;
-#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 3)
     QEglFSIntegration *platformIntegration = static_cast<QEglFSIntegration *>(
         QGuiApplicationPrivate::platformIntegration());
 #endif
     while (!app->screens().isEmpty())
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
         QWindowSystemInterface::handleScreenRemoved(app->screens().constLast()->handle());
 #else
         platformIntegration->removeScreen(app->screens().constLast()->handle());
