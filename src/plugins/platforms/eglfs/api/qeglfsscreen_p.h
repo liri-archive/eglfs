@@ -104,7 +104,7 @@ private:
     EGLSurface m_surface;
     QPlatformCursor *m_cursor;
     bool m_modeChangeRequested = false;
-    bool m_recordingEnabled = true;
+    bool m_recordingEnabled = false;
 
     friend class QEglFSWindow;
 };
