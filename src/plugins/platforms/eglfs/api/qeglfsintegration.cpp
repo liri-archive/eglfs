@@ -122,7 +122,7 @@ void QEglFSIntegration::removeScreen(QPlatformScreen *screen)
 void QEglFSIntegration::initialize()
 {
     m_logindHandler = new QEglFSLogindHandler();
-    connect(m_logindHandler, &QEglFSLogindHandler::initializationRequested, [&] {
+    connect(m_logindHandler, &QEglFSLogindHandler::initializationRequested, this, [&] {
         qt_egl_device_integration()->platformInit();
 
         m_display = qt_egl_device_integration()->createDisplay(nativeDisplay());
