@@ -54,40 +54,30 @@ void EglFSFunctions::setPowerState(QScreen *screen, PowerState state)
         func(screen, state);
 }
 
-QByteArray EglFSFunctions::setScreenPositionIdentifier()
+QByteArray EglFSFunctions::testScreenChangesIdentifier()
 {
-    return QByteArrayLiteral("LiriEglFSSetScreenPosition");
+    return "LiriEglFSTestScreenChanges";
 }
 
-void EglFSFunctions::setScreenPosition(QScreen *screen, const QPoint &pos)
+bool EglFSFunctions::testScreenChanges(const QVector<ScreenChange> &changes)
 {
-    SetScreenPositionType func = reinterpret_cast<SetScreenPositionType>(QGuiApplication::platformFunction(setScreenPositionIdentifier()));
+    TestScreenChangesType func = reinterpret_cast<TestScreenChangesType>(QGuiApplication::platformFunction(testScreenChangesIdentifier()));
     if (func)
-        func(screen, pos);
+        return func(changes);
+    return false;
 }
 
-QByteArray EglFSFunctions::setScreenModeIdentifier()
+QByteArray EglFSFunctions::applyScreenChangesIdentifier()
 {
-    return QByteArrayLiteral("LiriEglFSSetScreenMode");
+    return "LiriEglFSApplyScreenChanges";
 }
 
-void EglFSFunctions::setScreenMode(QScreen *screen, int modexIndex)
+bool EglFSFunctions::applyScreenChanges(const QVector<ScreenChange> &changes)
 {
-    SetScreenModeType func = reinterpret_cast<SetScreenModeType>(QGuiApplication::platformFunction(setScreenModeIdentifier()));
+    ApplyScreenChangesType func = reinterpret_cast<ApplyScreenChangesType>(QGuiApplication::platformFunction(applyScreenChangesIdentifier()));
     if (func)
-        func(screen, modexIndex);
-}
-
-QByteArray EglFSFunctions::setScreenScaleFactorIdentifier()
-{
-    return QByteArrayLiteral("LiriEglFSSetScreenScaleFactor");
-}
-
-void EglFSFunctions::setScreenScaleFactor(QScreen *screen, qreal factor)
-{
-    SetScreenScaleFactorType func = reinterpret_cast<SetScreenScaleFactorType>(QGuiApplication::platformFunction(setScreenScaleFactorIdentifier()));
-    if (func)
-        func(screen, factor);
+        return func(changes);
+    return false;
 }
 
 QByteArray EglFSFunctions::enableScreenCaptureIdentifier()

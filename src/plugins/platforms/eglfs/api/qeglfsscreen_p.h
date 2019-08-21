@@ -96,6 +96,9 @@ public:
     bool isRecordingEnabled() const { return m_recordingEnabled; }
     void setRecordingEnabled(bool enabled) { m_recordingEnabled = enabled; }
 
+protected:
+    bool m_modeChangeRequested = false;
+
 private:
     void setPrimarySurface(EGLSurface surface);
 
@@ -103,7 +106,6 @@ private:
     QPointer<QWindow> m_pointerWindow;
     EGLSurface m_surface;
     QPlatformCursor *m_cursor;
-    bool m_modeChangeRequested = false;
     bool m_recordingEnabled = false;
 
     friend class QEglFSWindow;

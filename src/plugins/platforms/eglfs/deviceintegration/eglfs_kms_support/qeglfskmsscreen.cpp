@@ -242,16 +242,6 @@ int QEglFSKmsScreen::currentMode() const
     return m_output.mode;
 }
 
-void QEglFSKmsScreen::setCurrentMode(int modeIndex)
-{
-    if (m_output.mode == modeIndex)
-        return;
-
-    m_output.mode = modeIndex;
-    m_output.mode_set = false;
-    m_output.size = QSize(m_output.modes[modeIndex].hdisplay, m_output.modes[modeIndex].vdisplay);
-}
-
 int QEglFSKmsScreen::preferredMode() const
 {
     return m_output.preferred_mode;
@@ -281,6 +271,42 @@ qreal QEglFSKmsScreen::scaleFactor() const
 void QEglFSKmsScreen::setScaleFactor(qreal value)
 {
     m_scaleFactor = value;
+}
+
+bool QEglFSKmsScreen::setMode(const QSize &size, qreal refreshRate)
+{
+    int modeIndex = m_output.mode;
+
+    int i = 0;
+    for (const drmModeModeInfo &mode : qAsConst(m_output.modes)) {
+        if (size.width() == mode.hdisplay && size.height() == mode.vdisplay) {
+            // Ignore interlaced modes
+            if (mode.flags & DRM_MODE_FLAG_INTERLACE)
+                continue;
+
+            // Verify refresh rate
+            if (mode.vrefresh != refreshRate)
+                continue;
+
+            modeIndex = i;
+            break;
+        }
+        i++;
+    }
+
+    if (m_output.mode == modeIndex) {
+        qCDebug(qLcEglfsKmsDebug, "Won't change mode because it's already set to %ux%u at %.2f Hz", size.width(), size.height(), refreshRate);
+        return false;
+    }
+
+    qCInfo(qLcEglfsKmsDebug, "Changing mode to %ux%u at %.2f Hz", size.width(), size.height(), refreshRate);
+
+    // Mode will be changed next flip
+    m_output.mode = modeIndex;
+    m_output.size = size;
+    m_output.mode_set = false;
+
+    return true;
 }
 
 QT_END_NAMESPACE

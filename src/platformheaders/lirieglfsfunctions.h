@@ -34,6 +34,19 @@ namespace Liri {
 
 namespace Platform {
 
+class LIRIPLATFORMHEADERS_EXPORT ScreenChange
+{
+public:
+    explicit ScreenChange() = default;
+
+    QScreen *screen = nullptr;
+    bool enabled = false;
+    QPoint position;
+    QSize resolution;
+    int refreshRate = 60;
+    qreal scale = 1.0f;
+};
+
 class LIRIPLATFORMHEADERS_EXPORT EglFSFunctions
 {
 public:
@@ -52,21 +65,13 @@ public:
     static QByteArray setPowerStateIdentifier();
     static void setPowerState(QScreen *screen, PowerState state);
 
-    ///
+    typedef bool (*TestScreenChangesType)(const QVector<ScreenChange> &changes);
+    static QByteArray testScreenChangesIdentifier();
+    static bool testScreenChanges(const QVector<ScreenChange> &changes);
 
-    typedef void (*SetScreenPositionType)(QScreen *screen, const QPoint &pos);
-    static QByteArray setScreenPositionIdentifier();
-    static void setScreenPosition(QScreen *screen, const QPoint &pos);
-
-    typedef void (*SetScreenModeType)(QScreen *screen, int modeIndex);
-    static QByteArray setScreenModeIdentifier();
-    static void setScreenMode(QScreen *screen, int modexIndex);
-
-    typedef void (*SetScreenScaleFactorType)(QScreen *screen, qreal factor);
-    static QByteArray setScreenScaleFactorIdentifier();
-    static void setScreenScaleFactor(QScreen *screen, qreal factor);
-
-    ///
+    typedef bool (*ApplyScreenChangesType)(const QVector<ScreenChange> &changes);
+    static QByteArray applyScreenChangesIdentifier();
+    static bool applyScreenChanges(const QVector<ScreenChange> &changes);
 
     typedef void (*EnableScreenCaptureType)(QScreen *screen);
     static QByteArray enableScreenCaptureIdentifier();

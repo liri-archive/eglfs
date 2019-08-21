@@ -84,10 +84,14 @@ void QEglFSKmsGbmWindow::invalidateSurface()
 bool QEglFSKmsGbmWindow::resizeSurface(const QSize &size)
 {
     QEglFSKmsGbmIntegration *integration = const_cast<QEglFSKmsGbmIntegration *>(m_integration);
+
     QEglFSKmsGbmScreen *gbmScreen = static_cast<QEglFSKmsGbmScreen *>(screen());
     EGLDisplay display = gbmScreen->display();
+    QSurfaceFormat platformFormat = m_integration->surfaceFormatFor(window()->requestedFormat());
+    m_config = QEglFSDeviceIntegration::chooseConfig(display, platformFormat);
+    m_format = q_glFormatFromConfig(display, m_config, platformFormat);
     // One fullscreen window per screen -> the native window is simply the gbm_surface the screen created.
-    EGLNativeWindowType window = integration->createNativeWindow(this, size, m_format);
+    EGLNativeWindowType window = reinterpret_cast<EGLNativeWindowType>(gbmScreen->createGbmSurface(m_config, size));
 
     PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC createPlatformWindowSurface = nullptr;
     const char *extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
@@ -109,6 +113,8 @@ bool QEglFSKmsGbmWindow::resizeSurface(const QSize &size)
         integration->destroyNativeWindow(window);
         return false;
     }
+
+    gbmScreen->setSurface(reinterpret_cast<gbm_surface *>(window));
 
     // Keep track of the old surface
     EGLSurface oldSurface = m_surface;

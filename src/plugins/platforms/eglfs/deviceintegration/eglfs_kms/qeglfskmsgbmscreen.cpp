@@ -174,33 +174,40 @@ QPlatformCursor *QEglFSKmsGbmScreen::cursor() const
     }
 }
 
+gbm_surface *QEglFSKmsGbmScreen::createGbmSurface(EGLConfig eglConfig, const QSize &size)
+{
+    qCDebug(qLcEglfsKmsDebug, "Creating gbm_surface for screen %s", qPrintable(name()));
+
+    const auto gbmDevice = static_cast<QEglFSKmsGbmDevice *>(device())->gbmDevice();
+    EGLint native_format = -1;
+    EGLBoolean success = eglGetConfigAttrib(display(), eglConfig, EGL_NATIVE_VISUAL_ID, &native_format);
+    qCDebug(qLcEglfsKmsDebug) << "Got native format" << hex << native_format << dec << "from eglGetConfigAttrib() with return code" << bool(success);
+    gbm_surface *gbmSurface = nullptr;
+
+    if (success)
+        gbmSurface = gbm_surface_create(gbmDevice,
+                                        size.width(),
+                                        size.height(),
+                                        native_format,
+                                        GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+
+    if (!gbmSurface) { // fallback for older drivers
+        uint32_t gbmFormat = drmFormatToGbmFormat(m_output.drm_format);
+        qCDebug(qLcEglfsKmsDebug, "Could not create surface with EGL_NATIVE_VISUAL_ID, falling back to format %x", gbmFormat);
+        gbmSurface = gbm_surface_create(gbmDevice,
+                                        size.width(),
+                                        size.height(),
+                                        gbmFormat,
+                                        GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    }
+
+    return gbmSurface; // not owned, gets destroyed by the caller
+}
+
 gbm_surface *QEglFSKmsGbmScreen::createSurface(EGLConfig eglConfig)
 {
-    if (!m_gbm_surface) {
-        qCDebug(qLcEglfsKmsDebug, "Creating gbm_surface for screen %s", qPrintable(name()));
-
-        const auto gbmDevice = static_cast<QEglFSKmsGbmDevice *>(device())->gbmDevice();
-        EGLint native_format = -1;
-        EGLBoolean success = eglGetConfigAttrib(display(), eglConfig, EGL_NATIVE_VISUAL_ID, &native_format);
-        qCDebug(qLcEglfsKmsDebug) << "Got native format" << hex << native_format << dec << "from eglGetConfigAttrib() with return code" << bool(success);
-
-        if (success)
-            m_gbm_surface = gbm_surface_create(gbmDevice,
-                                           rawGeometry().width(),
-                                           rawGeometry().height(),
-                                           native_format,
-                                           GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-
-        if (!m_gbm_surface) { // fallback for older drivers
-            uint32_t gbmFormat = drmFormatToGbmFormat(m_output.drm_format);
-            qCDebug(qLcEglfsKmsDebug, "Could not create surface with EGL_NATIVE_VISUAL_ID, falling back to format %x", gbmFormat);
-            m_gbm_surface = gbm_surface_create(gbmDevice,
-                                           rawGeometry().width(),
-                                           rawGeometry().height(),
-                                           gbmFormat,
-                                           GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-        }
-    }
+    if (!m_gbm_surface)
+        m_gbm_surface = createGbmSurface(eglConfig, rawGeometry().size());
     return m_gbm_surface; // not owned, gets destroyed in QEglFSKmsGbmIntegration::destroyNativeWindow() via QEglFSKmsGbmWindow::invalidateSurface()
 }
 
@@ -211,6 +218,17 @@ void QEglFSKmsGbmScreen::resetSurface()
 
 void QEglFSKmsGbmScreen::setSurface(gbm_surface *surface)
 {
+    if (m_gbm_bo_current) {
+        gbm_surface_release_buffer(m_gbm_surface,
+                                   m_gbm_bo_current);
+        m_gbm_bo_current = nullptr;
+    }
+    if (m_gbm_bo_next) {
+        gbm_surface_release_buffer(m_gbm_surface,
+                                   m_gbm_bo_next);
+        m_gbm_bo_next = nullptr;
+    }
+
     m_gbm_surface = surface;
 }
 
@@ -424,6 +442,12 @@ void QEglFSKmsGbmScreen::flip()
     if (device()->hasAtomicSupport())
          device()->atomicCommit(this);
 #endif
+}
+
+void QEglFSKmsGbmScreen::setModeChangeRequested(bool enabled)
+{
+    QMutexLocker lock(&m_waitForFlipMutex);
+    m_modeChangeRequested = enabled;
 }
 
 void QEglFSKmsGbmScreen::recordFrame(EGLClientBuffer bo, int width, int height)

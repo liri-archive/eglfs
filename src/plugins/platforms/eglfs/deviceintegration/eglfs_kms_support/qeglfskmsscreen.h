@@ -86,7 +86,6 @@ public:
     QVector<QPlatformScreen::Mode> modes() const override;
 
     int currentMode() const override;
-    void setCurrentMode(int modeIndex);
     int preferredMode() const override;
 
     QKmsDevice *device() const { return m_device; }
@@ -100,6 +99,8 @@ public:
 
     QPlatformScreen::PowerState powerState() const override;
     void setPowerState(QPlatformScreen::PowerState state) override;
+
+    bool setMode(const QSize &size, qreal refreshRate);
 
     qreal scaleFactor() const;
     void setScaleFactor(qreal value);

@@ -47,6 +47,7 @@
 #include "private/qeglfscursor_p.h"
 
 #include <QtCore/QLoggingCategory>
+#include <QtCore/QtMath>
 #include <QtGui/QScreen>
 #include <QtGui/QWindow>
 #include <qpa/qwindowsysteminterface.h>
@@ -162,8 +163,7 @@ void QEglFSKmsGbmIntegration::presentBuffer(QPlatformSurface *surface)
 
     QWindow *window = static_cast<QWindow *>(surface->surface());
     QEglFSKmsGbmScreen *screen = static_cast<QEglFSKmsGbmScreen *>(window->screen()->handle());
-    if (!screen->modeChangeRequested())
-        screen->flip();
+    screen->flip();
 }
 
 QEglFSWindow *QEglFSKmsGbmIntegration::createWindow(QWindow *window) const
@@ -177,10 +177,10 @@ QFunctionPointer QEglFSKmsGbmIntegration::platformFunction(const QByteArray &fun
     if (returnValue)
         return returnValue;
 
-    if (function == Liri::Platform::EglFSFunctions::setScreenPositionIdentifier())
-        return QFunctionPointer(setScreenPositionStatic);
-    else if (function == Liri::Platform::EglFSFunctions::setScreenModeIdentifier())
-        return QFunctionPointer(setScreenModeStatic);
+    if (function == Liri::Platform::EglFSFunctions::testScreenChangesIdentifier())
+        return QFunctionPointer(testScreenChangesStatic);
+    else if (function == Liri::Platform::EglFSFunctions::applyScreenChangesIdentifier())
+        return QFunctionPointer(applyScreenChangesStatic);
 
     return nullptr;
 }
@@ -207,40 +207,50 @@ QKmsDevice *QEglFSKmsGbmIntegration::createDevice()
     return new QEglFSKmsGbmDevice(screenConfig(), path);
 }
 
-void QEglFSKmsGbmIntegration::setScreenPositionStatic(QScreen *screen, const QPoint &pos)
+bool QEglFSKmsGbmIntegration::testScreenChangesStatic(const QVector<Liri::Platform::ScreenChange> &changes)
 {
-    QEglFSKmsGbmScreen *gbmScreen = static_cast<QEglFSKmsGbmScreen *>(screen->handle());
-    gbmScreen->setVirtualPosition(pos);
+    Q_UNUSED(changes)
+    return true;
 }
 
-void QEglFSKmsGbmIntegration::setScreenModeStatic(QScreen *screen, int modeIndex)
+bool QEglFSKmsGbmIntegration::applyScreenChangesStatic(const QVector<Liri::Platform::ScreenChange> &changes)
 {
-    QEglFSKmsGbmScreen *gbmScreen = static_cast<QEglFSKmsGbmScreen *>(screen->handle());
+    for (auto &change : qAsConst(changes)) {
+        if (!change.screen || !change.enabled)
+            continue;
 
-    if (modeIndex < 0 || modeIndex > gbmScreen->modes().size() - 1) {
-        qCWarning(qLcEglfsKmsDebug) << "Invalid screen mode index" << modeIndex;
-        return;
-    }
+        auto *gbmScreen = static_cast<QEglFSKmsGbmScreen *>(change.screen->handle());
+        if (!gbmScreen)
+            continue;
 
-    gbmScreen->setModeChangeRequested(true);
+        qCDebug(qLcEglfsKmsDebug) << "Apply screen changes to" << gbmScreen->name();
 
-    QPlatformScreen::Mode mode = gbmScreen->modes().at(modeIndex);
+        gbmScreen->setModeChangeRequested(true);
 
-    for (auto window : QGuiApplication::topLevelWindows()) {
-        if (window->screen() == screen) {
-            QEglFSKmsGbmWindow *gbmWindow = static_cast<QEglFSKmsGbmWindow *>(window->handle());
-            if (gbmWindow->resizeSurface(mode.size)) {
-                gbmScreen->setSurface(reinterpret_cast<gbm_surface *>(gbmWindow->eglWindow()));
-                gbmScreen->setCurrentMode(modeIndex);
+        bool modeChanged = gbmScreen->setMode(change.resolution, qCeil(change.refreshRate / 1000.0f));
+        if (!modeChanged) {
+            gbmScreen->setModeChangeRequested(false);
+            continue;
+        }
+
+        gbmScreen->setVirtualPosition(change.position);
+        gbmScreen->setScaleFactor(change.scale);
+
+        const auto windows = QGuiApplication::topLevelWindows();
+        for (auto *window : windows) {
+            if (window->screen() == change.screen) {
+                auto *gbmWindow = static_cast<QEglFSKmsGbmWindow *>(window->handle());
+                gbmWindow->resizeSurface(gbmScreen->rawGeometry().size());
                 gbmWindow->setGeometry(QRect());
             }
-            break;
         }
+
+        QWindowSystemInterface::handleScreenGeometryChange(change.screen, gbmScreen->geometry(), gbmScreen->availableGeometry());
+
+        gbmScreen->setModeChangeRequested(false);
     }
 
-    gbmScreen->setModeChangeRequested(false);
-
-    QWindowSystemInterface::handleScreenGeometryChange(screen, gbmScreen->geometry(), gbmScreen->availableGeometry());
+    return true;
 }
 
 QT_END_NAMESPACE

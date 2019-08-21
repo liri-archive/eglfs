@@ -51,6 +51,12 @@ namespace QtUdev {
 class Udev;
 }
 
+namespace Liri {
+namespace Platform {
+class ScreenChange;
+}
+}
+
 QT_BEGIN_NAMESPACE
 
 class QEglFSKmsDevice;
@@ -80,8 +86,8 @@ protected:
 private:
     QtUdev::Udev *m_udev;
 
-    static void setScreenPositionStatic(QScreen *screen, const QPoint &pos);
-    static void setScreenModeStatic(QScreen *screen, int modeIndex);
+    static bool testScreenChangesStatic(const QVector<Liri::Platform::ScreenChange> &changes);
+    static bool applyScreenChangesStatic(const QVector<Liri::Platform::ScreenChange> &changes);
 };
 
 QT_END_NAMESPACE

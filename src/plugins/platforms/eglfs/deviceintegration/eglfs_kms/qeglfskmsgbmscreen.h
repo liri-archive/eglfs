@@ -60,6 +60,7 @@ public:
 
     QPlatformCursor *cursor() const override;
 
+    gbm_surface *createGbmSurface(EGLConfig eglConfig, const QSize &size);
     gbm_surface *createSurface(EGLConfig eglConfig);
     void resetSurface();
     void setSurface(gbm_surface *surface);
@@ -70,6 +71,8 @@ public:
     void waitForFlip() override;
 
     void flip();
+
+    void setModeChangeRequested(bool enabled) override;
 
 private:
     void flipFinished();

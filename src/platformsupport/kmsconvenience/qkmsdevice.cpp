@@ -57,6 +57,7 @@ Q_LOGGING_CATEGORY(qLcKmsDebug, "qt.qpa.eglfs.kms")
 
 enum OutputConfiguration {
     OutputConfigOff,
+    OutputConfigDisabled,
     OutputConfigPreferred,
     OutputConfigCurrent,
     OutputConfigMode,
@@ -187,6 +188,8 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
         .toByteArray().toLower();
     if (mode == "off") {
         configuration = OutputConfigOff;
+    } else if (mode == "disabled") {
+        configuration = OutputConfigDisabled;
     } else if (mode == "preferred") {
         configuration = OutputConfigPreferred;
     } else if (mode == "current") {
@@ -227,6 +230,12 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
     if (configuration == OutputConfigPreferred && connector->connection == DRM_MODE_DISCONNECTED) {
         qCDebug(qLcKmsDebug) << "Skipping disconnected output" << connectorName;
         return nullptr;
+    }
+
+    // Power off disabled output but create a screen for it
+    if (configuration == OutputConfigDisabled) {
+        qCDebug(qLcKmsDebug) << "Disabling output output" << connectorName;
+        drmModeSetCrtc(m_dri_fd, crtc_id, 0, 0, 0, 0, 0, nullptr);
     }
 
     // Get the current mode on the current crtc
@@ -337,15 +346,15 @@ QPlatformScreen *QKmsDevice::createScreenForConnector(drmModeResPtr resources,
         }
     }
 
-    if (selected_mode < 0) {
-        qWarning() << "No modes available for output" << connectorName;
+    if (Q_UNLIKELY(selected_mode < 0)) {
+        qCWarning(qLcKmsDebug) << "No modes available for output" << connectorName;
         return nullptr;
     } else {
         int width = modes[selected_mode].hdisplay;
         int height = modes[selected_mode].vdisplay;
         int refresh = modes[selected_mode].vrefresh;
         qCDebug(qLcKmsDebug) << "Selected mode" << selected_mode << ":" << width << "x" << height
-                                  << '@' << refresh << "hz for output" << connectorName;
+                             << '@' << refresh << "hz for output" << connectorName;
     }
 
     // physical size from connector < config values < env vars
