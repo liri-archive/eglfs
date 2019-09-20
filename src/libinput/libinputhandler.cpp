@@ -134,13 +134,20 @@ void LibInputHandlerPrivate::initialize()
     else if (lcInput().isWarningEnabled())
         libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_ERROR);
 
-    // Assign current seat, relies on XDG_SEAT being set correctly as
-    // this would be the case of a session initiated by pam_systemd
-    if (Q_UNLIKELY(libinput_udev_assign_seat(li, qgetenv("XDG_SEAT").constData()) != 0)) {
-        qFatal("Failed to assign seat to libinput");
+    // Assign current seat, don't use XDG_SEAT directly as it's not
+    // reliable when we are not in a login session such as when
+    // we are spawned by systemd --user
+    QString seat = Liri::Logind::instance()->seat();
+    if (seat.isEmpty()) {
+        qFatal("Cannot determine seat, aborting...");
         return;
+    } else {
+        if (Q_UNLIKELY(libinput_udev_assign_seat(li, qPrintable(seat)) != 0)) {
+            qFatal("Failed to assign seat \"%s\" to libinput", qPrintable(seat));
+            return;
+        }
+        qCDebug(lcInput, "Assigned seat \"%s\" to libinput", qPrintable(seat));
     }
-    qCDebug(lcInput, "Assigned seat \"%s\" to udev", qgetenv("XDG_SEAT").constData());
 
     keyboard = new LibInputKeyboard(q);
     pointer = new LibInputPointer(q);
