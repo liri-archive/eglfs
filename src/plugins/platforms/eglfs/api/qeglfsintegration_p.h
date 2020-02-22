@@ -125,8 +125,8 @@ private:
     static Liri::Platform::EglFSFunctions::PowerState getPowerStateStatic(QScreen *screen);
     static void setPowerStateStatic(QScreen *screen, Liri::Platform::EglFSFunctions::PowerState powerState);
 
-    static void enableScreenCaptureStatic(QScreen *screen);
-    static void disableScreenCaptureStatic(QScreen *screen);
+    static void enableScreenCastStatic(QScreen *screen);
+    static void disableScreenCastStatic(QScreen *screen);
 
     EGLDisplay m_display;
     QPlatformInputContext *m_inputContext;

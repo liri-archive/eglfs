@@ -432,10 +432,10 @@ QFunctionPointer QEglFSIntegration::platformFunction(const QByteArray &function)
         return QFunctionPointer(getPowerStateStatic);
     else if (function == Liri::Platform::EglFSFunctions::setPowerStateIdentifier())
         return QFunctionPointer(setPowerStateStatic);
-    else if (function == Liri::Platform::EglFSFunctions::enableScreenCaptureIdentifier())
-        return QFunctionPointer(enableScreenCaptureStatic);
-    else if (function == Liri::Platform::EglFSFunctions::disableScreenCaptureIdentifier())
-        return QFunctionPointer(disableScreenCaptureStatic);
+    else if (function == Liri::Platform::EglFSFunctions::enableScreenCastIdentifier())
+        return QFunctionPointer(enableScreenCastStatic);
+    else if (function == Liri::Platform::EglFSFunctions::disableScreenCastIdentifier())
+        return QFunctionPointer(disableScreenCastStatic);
 
     return qt_egl_device_integration()->platformFunction(function);
 }
@@ -479,13 +479,13 @@ void QEglFSIntegration::setPowerStateStatic(QScreen *screen, Liri::Platform::Egl
     }
 }
 
-void QEglFSIntegration::enableScreenCaptureStatic(QScreen *screen)
+void QEglFSIntegration::enableScreenCastStatic(QScreen *screen)
 {
     QEglFSScreen *platformScreen = static_cast<QEglFSScreen *>(screen->handle());
     platformScreen->setRecordingEnabled(true);
 }
 
-void QEglFSIntegration::disableScreenCaptureStatic(QScreen *screen)
+void QEglFSIntegration::disableScreenCastStatic(QScreen *screen)
 {
     QEglFSScreen *platformScreen = static_cast<QEglFSScreen *>(screen->handle());
     platformScreen->setRecordingEnabled(false);

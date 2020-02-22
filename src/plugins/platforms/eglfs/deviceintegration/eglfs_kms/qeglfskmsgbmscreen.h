@@ -79,7 +79,7 @@ private:
     void ensureModeSet(uint32_t fb);
     void cloneDestFlipFinished(QEglFSKmsGbmScreen *cloneDestScreen);
     void updateFlipStatus();
-    void recordFrame(EGLClientBuffer bo, int width, int height);
+    void recordFrame(unsigned int tv_sec, unsigned int tv_usec);
 
     static void pageFlipHandler(int fd,
                                 unsigned int sequence,

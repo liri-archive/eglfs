@@ -80,43 +80,78 @@ bool EglFSFunctions::applyScreenChanges(const QVector<ScreenChange> &changes)
     return false;
 }
 
-QByteArray EglFSFunctions::enableScreenCaptureIdentifier()
+QByteArray EglFSFunctions::enableScreenCastIdentifier()
 {
-    return QByteArrayLiteral("LiriEglFSEnableScreenCapture");
+    return QByteArrayLiteral("LiriEglFSEnableScreenCast");
 }
 
-void EglFSFunctions::enableScreenCapture(QScreen *screen)
+void EglFSFunctions::enableScreenCast(QScreen *screen)
 {
-    EnableScreenCaptureType func = reinterpret_cast<EnableScreenCaptureType>(QGuiApplication::platformFunction(enableScreenCaptureIdentifier()));
+    EnableScreenCastType func = reinterpret_cast<EnableScreenCastType>(QGuiApplication::platformFunction(enableScreenCastIdentifier()));
     if (func)
         func(screen);
 }
 
-QByteArray EglFSFunctions::disableScreenCaptureIdentifier()
+QByteArray EglFSFunctions::disableScreenCastIdentifier()
 {
     return QByteArrayLiteral("LiriEglFSDisableStreaming");
 }
 
-void EglFSFunctions::disableScreenCapture(QScreen *screen)
+void EglFSFunctions::disableScreenCast(QScreen *screen)
 {
-    DisableScreenCaptureType func = reinterpret_cast<DisableScreenCaptureType>(QGuiApplication::platformFunction(disableScreenCaptureIdentifier()));
+    DisableScreenCastType func = reinterpret_cast<DisableScreenCastType>(QGuiApplication::platformFunction(disableScreenCastIdentifier()));
     if (func)
         func(screen);
 }
 
 /*
- * Screen capture
+ * Screencast
  */
 
-QEvent::Type FrameCaptureEvent::eventType = QEvent::None;
+QEvent::Type ScreenCastFrameEvent::eventType = QEvent::None;
 
-FrameCaptureEvent::FrameCaptureEvent(const QImage &image)
+ScreenCastFrameEvent::ScreenCastFrameEvent()
     : QEvent(registeredType())
-    , capture(image)
 {
 }
 
-QEvent::Type FrameCaptureEvent::registeredType()
+QEvent::Type ScreenCastFrameEvent::registeredType()
+{
+    if (eventType == QEvent::None) {
+        int generatedType = QEvent::registerEventType();
+        eventType = static_cast<QEvent::Type>(generatedType);
+    }
+
+    return eventType;
+}
+
+
+QEvent::Type ScreenCastObjectEvent::eventType = QEvent::None;
+
+ScreenCastObjectEvent::ScreenCastObjectEvent()
+    : QEvent(registeredType())
+{
+}
+
+QEvent::Type ScreenCastObjectEvent::registeredType()
+{
+    if (eventType == QEvent::None) {
+        int generatedType = QEvent::registerEventType();
+        eventType = static_cast<QEvent::Type>(generatedType);
+    }
+
+    return eventType;
+}
+
+
+QEvent::Type ScreenCastReadyEvent::eventType = QEvent::None;
+
+ScreenCastReadyEvent::ScreenCastReadyEvent()
+    : QEvent(registeredType())
+{
+}
+
+QEvent::Type ScreenCastReadyEvent::registeredType()
 {
     if (eventType == QEvent::None) {
         int generatedType = QEvent::registerEventType();

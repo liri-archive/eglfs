@@ -26,7 +26,6 @@
 
 #include <QEvent>
 #include <QGuiApplication>
-#include <QImage>
 
 #include <LiriPlatformHeaders/liriplatformheadersglobal.h>
 
@@ -73,21 +72,58 @@ public:
     static QByteArray applyScreenChangesIdentifier();
     static bool applyScreenChanges(const QVector<ScreenChange> &changes);
 
-    typedef void (*EnableScreenCaptureType)(QScreen *screen);
-    static QByteArray enableScreenCaptureIdentifier();
-    static void enableScreenCapture(QScreen *screen);
+    typedef void (*EnableScreenCastType)(QScreen *screen);
+    static QByteArray enableScreenCastIdentifier();
+    static void enableScreenCast(QScreen *screen);
 
-    typedef void (*DisableScreenCaptureType)(QScreen *screen);
-    static QByteArray disableScreenCaptureIdentifier();
-    static void disableScreenCapture(QScreen *screen);
+    typedef void (*DisableScreenCastType)(QScreen *screen);
+    static QByteArray disableScreenCastIdentifier();
+    static void disableScreenCast(QScreen *screen);
 };
 
-class LIRIPLATFORMHEADERS_EXPORT FrameCaptureEvent : public QEvent
+class LIRIPLATFORMHEADERS_EXPORT ScreenCastFrameEvent : public QEvent
 {
 public:
-    FrameCaptureEvent(const QImage &image);
+    explicit ScreenCastFrameEvent();
 
-    QImage capture;
+    QScreen *screen = nullptr;
+    QPoint offset;
+    QSize size;
+    quint32 drmFormat = 0;
+    quint64 modifier = 0;
+    quint32 numObjects = 0;
+
+    static QEvent::Type eventType;
+
+    static QEvent::Type registeredType();
+};
+
+class LIRIPLATFORMHEADERS_EXPORT ScreenCastObjectEvent : public QEvent
+{
+public:
+    explicit ScreenCastObjectEvent();
+
+    QScreen *screen = nullptr;
+    quint32 index = 0;
+    int fd = -1;
+    quint32 size = 0;
+    quint32 offset = 0;
+    quint32 stride = 0;
+    quint32 planeIndex = 0;
+
+    static QEvent::Type eventType;
+
+    static QEvent::Type registeredType();
+};
+
+class LIRIPLATFORMHEADERS_EXPORT ScreenCastReadyEvent : public QEvent
+{
+public:
+    explicit ScreenCastReadyEvent();
+
+    QScreen *screen = nullptr;
+    quint64 tv_sec = 0;
+    quint32 tv_nsec = 0;
 
     static QEvent::Type eventType;
 
