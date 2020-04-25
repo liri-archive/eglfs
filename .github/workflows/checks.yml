@@ -1,0 +1,26 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    tags:
+      - v*
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  wip:
+    if: "!contains(github.event.head_commit.message, 'ci skip') && github.event_name == 'pull_request'"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Work in progress
+        uses: wip/action@master

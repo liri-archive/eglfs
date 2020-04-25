@@ -3,9 +3,8 @@ eglfs
 
 [![License](https://img.shields.io/badge/license-GPLv3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![GitHub release](https://img.shields.io/github/release/lirios/eglfs.svg)](https://github.com/lirios/eglfs)
-[![Build Status](https://travis-ci.org/lirios/eglfs.svg?branch=develop)](https://travis-ci.org/lirios/eglfs)
+[![CI](https://github.com/lirios/eglfs/workflows/CI/badge.svg?branch=develop)](https://github.com/lirios/eglfs/actions?query=workflow%3ACI)
 [![GitHub issues](https://img.shields.io/github/issues/lirios/eglfs.svg)](https://github.com/lirios/eglfs/issues)
-[![Maintained](https://img.shields.io/maintenance/yes/2018.svg)](https://github.com/lirios/eglfs/commits/develop)
 
 Qt platform plugin with DRM/KMS support.
 It's a fork of Qt's eglfs plugin with more feature such as:
