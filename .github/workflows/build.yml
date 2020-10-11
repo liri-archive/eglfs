@@ -45,37 +45,12 @@ jobs:
         run: |
           qtverid=`echo "${{ matrix.container }}" | sed -e 's,suse-qt,,g'`
           echo "##[set-output name=id;]${qtverid}"
-      - name: Fetch cmake-shared artifact
-        uses: liri-infra/fetch-artifact@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: lirios/cmake-shared
-          workflow_path: .github/workflows/build.yml
-          artifact_name: artifacts-${{ steps.extract_branch.outputs.branch }}
-          save_as: cmake-shared.zip
-      - name: Fetch qtudev artifact
-        uses: liri-infra/fetch-artifact@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: lirios/qtudev
-          workflow_path: .github/workflows/build.yml
-          artifact_name: artifacts-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}-${{ steps.extract_branch.outputs.branch }}
-          save_as: qtudev.zip
-      - name: Fetch libliri artifact
-        uses: liri-infra/fetch-artifact@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: lirios/libliri
-          workflow_path: .github/workflows/build.yml
-          artifact_name: artifacts-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}-${{ steps.extract_branch.outputs.branch }}
-          save_as: libliri.zip
-      - name: Uncompress artifacts
+      - name: Fetch and uncompress artifacts
         run: |
           set -x
-          for what in cmake-shared qtudev libliri; do
-              sudo tar xf ${what}.tar.gz -C /
-              rm -f ${what}.zip ${what}.tar.gz
-          done
+          curl -L -o - "https://dl.bintray.com/liri/artifacts-${{ steps.extract_branch.outputs.branch }}/cmake-shared.tar.gz" | sudo tar -xz -f - -C /
+          curl -L -o - "https://dl.bintray.com/liri/artifacts-${{ steps.extract_branch.outputs.branch }}/qtudev-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}.tar.gz" | sudo tar -xz -f - -C /
+          curl -L -o - "https://dl.bintray.com/liri/artifacts-${{ steps.extract_branch.outputs.branch }}/libliri-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}.tar.gz" | sudo tar -xz -f - -C /
       - uses: actions/checkout@v2
       - name: Build
         run: |
@@ -96,10 +71,17 @@ jobs:
         run: |
           cd build
           mkdir -p artifacts
-          tar czf artifacts/eglfs.tar.gz -T install_manifest.txt
+          tar czf artifacts/eglfs-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}.tar.gz -T install_manifest.txt
       - name: Archive result
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v1
+        uses: liri-infra/upload-bintray@master
         with:
-          name: artifacts-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}-${{ steps.extract_branch.outputs.branch }}
-          path: build/artifacts/
+          file: build/artifacts/eglfs-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}.tar.gz
+          api_user: ${{ secrets.BINTRAY_API_USER }}
+          api_key: ${{ secrets.BINTRAY_API_KEY }}
+          repository_user: liri
+          repository: artifacts-${{ steps.extract_branch.outputs.branch }}
+          package: eglfs-${{ matrix.compiler }}-${{ steps.qt_version.outputs.id }}
+          version: '1.0'
+          calculate_metadata: false
+          publish: '1'
