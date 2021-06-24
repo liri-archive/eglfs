@@ -86,6 +86,11 @@ public:
 
     LibInputHandler::Capabilities capabilities() const;
 
+    int keyboardCount() const;
+    int pointerCount() const;
+    int touchCount() const;
+    int gestureCount() const;
+
     void setPointerPosition(const QPoint &pos);
 
     bool isSuspended() const;

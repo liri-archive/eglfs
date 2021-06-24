@@ -41,6 +41,14 @@ LibInputManager::LibInputManager(QObject *parent)
     QInputDeviceManagerPrivate *inputManagerPriv
             = QInputDeviceManagerPrivate::get(inputManager);
 
+    // Set existing device count
+    inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeKeyboard,
+                                     m_handler->keyboardCount());
+    inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypePointer,
+                                     m_handler->pointerCount());
+    inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeTouch,
+                                     m_handler->touchCount());
+
     // Tell QPA about input devices
     connect(m_handler, &LibInputHandler::keyboardCountChanged, this,
             [inputManagerPriv](int count) {
