@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+branch=$1
+
+if [ -z "$branch" ]; then
+    echo "Usage: $0 [branch]"
+    exit 1
+fi
+
+curdir=$(dirname `readlink -f $0`)
+
+mkdir -p /tmp/build-deps
+pushd /tmp/build-deps
+$curdir/build-cmake-shared $branch
+$curdir/build-qtudev $branch
+$curdir/build-libliri $branch
+popd
