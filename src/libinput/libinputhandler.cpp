@@ -302,6 +302,30 @@ LibInputHandler::Capabilities LibInputHandler::capabilities() const
     return caps;
 }
 
+int LibInputHandler::keyboardCount() const
+{
+    Q_D(const LibInputHandler);
+    return d->keyboardCount;
+}
+
+int LibInputHandler::pointerCount() const
+{
+    Q_D(const LibInputHandler);
+    return d->pointerCount;
+}
+
+int LibInputHandler::touchCount() const
+{
+    Q_D(const LibInputHandler);
+    return d->touchCount;
+}
+
+int LibInputHandler::gestureCount() const
+{
+    Q_D(const LibInputHandler);
+    return d->gestureCount;
+}
+
 void LibInputHandler::setPointerPosition(const QPoint &pos)
 {
     Q_D(LibInputHandler);
