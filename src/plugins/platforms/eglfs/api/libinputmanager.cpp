@@ -48,6 +48,8 @@ LibInputManager::LibInputManager(QObject *parent)
                                      m_handler->pointerCount());
     inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeTouch,
                                      m_handler->touchCount());
+    inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeTablet,
+                                     m_handler->tabletCount());
 
     // Tell QPA about input devices
     connect(m_handler, &LibInputHandler::keyboardCountChanged, this,
@@ -63,6 +65,11 @@ LibInputManager::LibInputManager(QObject *parent)
     connect(m_handler, &LibInputHandler::touchCountChanged, this,
             [inputManagerPriv](int count) {
         inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeTouch,
+                                         count);
+    });
+    connect(m_handler, &LibInputHandler::tabletCountChanged, this,
+            [inputManagerPriv](int count) {
+        inputManagerPriv->setDeviceCount(QInputDeviceManager::DeviceTypeTablet,
                                          count);
     });
     connect(m_handler, &LibInputHandler::touchDeviceRegistered, this,

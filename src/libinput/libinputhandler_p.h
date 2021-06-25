@@ -85,6 +85,8 @@ public:
     LibInputTouch *touch;
     int touchCount;
 
+    int tabletCount;
+
     LibInputGesture *gesture;
     int gestureCount;
 

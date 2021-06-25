@@ -75,10 +75,11 @@ class LIRILIBINPUT_EXPORT LibInputHandler : public QObject
     Q_DECLARE_PRIVATE(LibInputHandler)
 public:
     enum CapabilityFlag {
-        Pointer = 0x01,
-        Keyboard = 0x02,
-        Touch = 0x04,
-        Gesture = 0x08
+        Pointer = (1 << 0),
+        Keyboard = (1 << 1),
+        Touch = (1 << 2),
+        Tablet = (1 << 3),
+        Gesture = (1 << 4),
     };
     Q_DECLARE_FLAGS(Capabilities, CapabilityFlag)
 
@@ -89,6 +90,7 @@ public:
     int keyboardCount() const;
     int pointerCount() const;
     int touchCount() const;
+    int tabletCount() const;
     int gestureCount() const;
 
     void setPointerPosition(const QPoint &pos);
@@ -107,6 +109,7 @@ Q_SIGNALS:
     void keyboardCountChanged(int count);
     void pointerCountChanged(int count);
     void touchCountChanged(int count);
+    void tabletCountChanged(int count);
     void gestureCountChanged(int count);
 
     void touchDeviceRegistered(QTouchDevice *td);

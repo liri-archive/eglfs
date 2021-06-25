@@ -288,7 +288,7 @@ LibInputHandler::Capabilities LibInputHandler::capabilities() const
 {
     Q_D(const LibInputHandler);
 
-    LibInputHandler::Capabilities caps = 0;
+    LibInputHandler::Capabilities caps;
 
     if (d->keyboardCount > 0)
         caps &= LibInputHandler::Keyboard;
@@ -296,8 +296,10 @@ LibInputHandler::Capabilities LibInputHandler::capabilities() const
         caps &= LibInputHandler::Pointer;
     if (d->touchCount > 0)
         caps &= LibInputHandler::Touch;
+    if (d->tabletCount > 0)
+        caps &= LibInputHandler::Tablet;
     if (d->gestureCount > 0)
-        caps &= LibInputHandler::Touch;
+        caps &= LibInputHandler::Gesture;
 
     return caps;
 }
@@ -318,6 +320,13 @@ int LibInputHandler::touchCount() const
 {
     Q_D(const LibInputHandler);
     return d->touchCount;
+}
+
+int LibInputHandler::tabletCount() const
+{
+
+    Q_D(const LibInputHandler);
+    return d->tabletCount;
 }
 
 int LibInputHandler::gestureCount() const
@@ -399,6 +408,12 @@ void LibInputHandler::handleEvents()
                 Q_EMIT touchCountChanged(d->touchCount);
             }
 
+            if (libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_TABLET_TOOL)) {
+                ++d->tabletCount;
+                Q_EMIT capabilitiesChanged();
+                Q_EMIT tabletCountChanged(d->tabletCount);
+            }
+
             if (libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_GESTURE)) {
                 ++d->gestureCount;
                 Q_EMIT capabilitiesChanged();
@@ -426,6 +441,12 @@ void LibInputHandler::handleEvents()
                 --d->touchCount;
                 Q_EMIT capabilitiesChanged();
                 Q_EMIT touchCountChanged(d->touchCount);
+            }
+
+            if (libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_TABLET_TOOL)) {
+                --d->tabletCount;
+                Q_EMIT capabilitiesChanged();
+                Q_EMIT tabletCountChanged(d->tabletCount);
             }
 
             if (libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_GESTURE)) {
