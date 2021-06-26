@@ -13,7 +13,8 @@ curdir=$(dirname `readlink -f $0`)
 
 mkdir -p /tmp/build-deps
 pushd /tmp/build-deps
-$curdir/build-cmake-shared $branch
-$curdir/build-qtudev $branch
-$curdir/build-libliri $branch
+git clone git://github.com/liri-infra/ci-scripts
+for repo in cmake-shared qtudev libliri; do
+    ./ci-scripts/build-liri $repo $branch
+done
 popd
