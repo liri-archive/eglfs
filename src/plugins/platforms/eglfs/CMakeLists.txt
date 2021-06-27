@@ -58,6 +58,10 @@ liri_add_module(EglFSDeviceIntegration
         api/vthandler.cpp
         api/vthandler.h
         api/vthandler_p.h
+        api/xcursor.c
+        api/xcursor.h
+        api/xcursortheme.cpp
+        api/xcursortheme_p.h
     PRIVATE_HEADERS
         api/libinputmanager_p.h
         api/qeglfscontext_p.h
@@ -70,6 +74,7 @@ liri_add_module(EglFSDeviceIntegration
         api/qeglfsscreen_p.h
         api/qeglfswindow_p.h
         api/vthandler_p.h
+        api/xcursortheme_p.h
     DEFINES
         QT_NO_CAST_FROM_ASCII
         #QT_NO_FOREACH

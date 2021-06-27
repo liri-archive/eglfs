@@ -415,6 +415,12 @@ void QEglFSKmsGbmScreen::flip()
 #endif
 }
 
+void QEglFSKmsGbmScreen::setCursorTheme(const QString &name, int size)
+{
+    if (!m_cursor.isNull())
+        m_cursor->setCursorTheme(name, size);
+}
+
 void QEglFSKmsGbmScreen::setModeChangeRequested(bool enabled)
 {
     QMutexLocker lock(&m_waitForFlipMutex);

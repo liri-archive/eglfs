@@ -90,6 +90,8 @@ public:
 
     void handleCursorMove(const QPoint &pos);
 
+    virtual void setCursorTheme(const QString &name, int size);
+
     virtual bool modeChangeRequested() const { return m_modeChangeRequested; }
     virtual void setModeChangeRequested(bool enabled) { m_modeChangeRequested = enabled; }
 

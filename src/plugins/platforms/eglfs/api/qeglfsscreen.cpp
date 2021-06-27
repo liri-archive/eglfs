@@ -45,6 +45,7 @@
 # include <QtPlatformCompositorSupport/private/qopenglcompositor_p.h>
 #endif
 
+#include "qeglfscursor_p.h"
 #include "qeglfsscreen_p.h"
 #include "qeglfswindow_p.h"
 #include "qeglfshooks_p.h"
@@ -183,6 +184,13 @@ void QEglFSScreen::handleCursorMove(const QPoint &pos)
 #else
     Q_UNUSED(pos);
 #endif
+}
+
+void QEglFSScreen::setCursorTheme(const QString &name, int size)
+{
+    auto *cursor = static_cast<QEglFSCursor *>(m_cursor);
+    if (cursor)
+        cursor->setCursorTheme(name, size);
 }
 
 QPixmap QEglFSScreen::grabWindow(WId wid, int x, int y, int width, int height) const

@@ -59,6 +59,8 @@
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/private/qinputdevicemanager_p.h>
 
+#include <LiriEglFSDeviceIntegration/private/xcursortheme_p.h>
+
 QT_BEGIN_NAMESPACE
 
 class QOpenGLShaderProgram;
@@ -112,6 +114,8 @@ public:
 
     void updateMouseStatus();
 
+    void setCursorTheme(const QString &name, int size);
+
 private:
     bool event(QEvent *e) override;
 #ifndef QT_NO_CURSOR
@@ -151,6 +155,7 @@ private:
     QEglFSScreen *m_screen;
     QPlatformScreen *m_activeScreen;
     QEglFSCursorDeviceListener *m_deviceListener;
+    Liri::Platform::XcursorTheme m_cursorTheme;
     bool m_updateRequested;
     bool m_visible;
 

@@ -75,6 +75,9 @@ QEglFSCursor::QEglFSCursor(QPlatformScreen *screen)
     if (rotation)
         m_rotationMatrix.rotate(rotation, 0, 0, 1);
 
+    // Load the default cursor
+    m_cursorTheme.loadTheme(QString(), 32);
+
     // Try to load the cursor atlas. If this fails, m_visible is set to false and
     // paintOnScreen() and setCurrentCursor() become no-ops.
     initCursorAtlas();
@@ -100,6 +103,11 @@ QEglFSCursor::~QEglFSCursor()
 void QEglFSCursor::updateMouseStatus()
 {
     m_visible = m_deviceListener->hasMouse();
+}
+
+void QEglFSCursor::setCursorTheme(const QString &name, int size)
+{
+    m_cursorTheme.loadTheme(name, size);
 }
 
 bool QEglFSCursorDeviceListener::hasMouse() const
@@ -224,14 +232,24 @@ bool QEglFSCursor::setCurrentCursor(QCursor *cursor)
     }
     m_cursor.shape = newShape;
     if (newShape != Qt::BitmapCursor) { // standard cursor
-        const float ws = (float)m_cursorAtlas.cursorWidth / m_cursorAtlas.width,
-                    hs = (float)m_cursorAtlas.cursorHeight / m_cursorAtlas.height;
-        m_cursor.textureRect = QRectF(ws * (m_cursor.shape % m_cursorAtlas.cursorsPerRow),
-                                      hs * (m_cursor.shape / m_cursorAtlas.cursorsPerRow),
-                                      ws, hs);
-        m_cursor.hotSpot = m_cursorAtlas.hotSpots[m_cursor.shape];
-        m_cursor.useCustomCursor = false;
-        m_cursor.size = QSize(m_cursorAtlas.cursorWidth, m_cursorAtlas.cursorHeight);
+        if (m_cursorTheme.isLoaded()) {
+            auto cursor = m_cursorTheme.cursorForShape(m_cursor.shape);
+            if (cursor.isValid) {
+                m_cursor.textureRect = QRect(QPoint(0, 0), cursor.image.size());
+                m_cursor.hotSpot = cursor.hotSpot;
+                m_cursor.useCustomCursor = false;
+                m_cursor.size = cursor.image.size();
+            }
+        } else {
+            const float ws = (float)m_cursorAtlas.cursorWidth / m_cursorAtlas.width,
+                        hs = (float)m_cursorAtlas.cursorHeight / m_cursorAtlas.height;
+            m_cursor.textureRect = QRectF(ws * (m_cursor.shape % m_cursorAtlas.cursorsPerRow),
+                                          hs * (m_cursor.shape / m_cursorAtlas.cursorsPerRow),
+                                          ws, hs);
+            m_cursor.hotSpot = m_cursorAtlas.hotSpots[m_cursor.shape];
+            m_cursor.useCustomCursor = false;
+            m_cursor.size = QSize(m_cursorAtlas.cursorWidth, m_cursorAtlas.cursorHeight);
+        }
     } else {
         QImage image = cursor->pixmap().toImage();
         m_cursor.textureRect = QRectF(0, 0, 1, 1);
@@ -476,7 +494,13 @@ void QEglFSCursor::draw(const QRectF &r)
         createShaderPrograms();
 
         if (!gfx.atlasTexture) {
-            createCursorTexture(&gfx.atlasTexture, m_cursorAtlas.image);
+            if (m_cursorTheme.isLoaded()) {
+                auto cursor = m_cursorTheme.cursorForShape(m_cursor.shape);
+                if (cursor.isValid)
+                    createCursorTexture(&gfx.atlasTexture, cursor.image);
+            } else {
+                createCursorTexture(&gfx.atlasTexture, m_cursorAtlas.image);
+            }
 
             if (m_cursor.shape != Qt::BitmapCursor)
                 m_cursor.useCustomCursor = false;

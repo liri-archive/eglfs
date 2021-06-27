@@ -29,6 +29,18 @@ namespace Liri {
 
 namespace Platform {
 
+QByteArray EglFSFunctions::setCursorThemeIdentifier()
+{
+    return QByteArrayLiteral("LiriEglFSSetCursorTheme");
+}
+
+void EglFSFunctions::setCursorTheme(const QString &name, int size)
+{
+    SetCursorThemeType func = reinterpret_cast<SetCursorThemeType>(QGuiApplication::platformFunction(setCursorThemeIdentifier()));
+    if (func)
+        func(name, size);
+}
+
 QByteArray EglFSFunctions::getPowerStateIdentifier()
 {
     return QByteArrayLiteral("LiriEglFSGetPowerState");

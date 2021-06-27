@@ -72,6 +72,8 @@ public:
 
     void flip();
 
+    void setCursorTheme(const QString &name, int size) override;
+
     void setModeChangeRequested(bool enabled) override;
 
 private:

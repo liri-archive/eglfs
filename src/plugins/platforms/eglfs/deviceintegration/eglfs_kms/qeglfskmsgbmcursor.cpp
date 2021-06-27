@@ -91,6 +91,10 @@ QEglFSKmsGbmCursor::QEglFSKmsGbmCursor(QEglFSKmsGbmScreen *screen)
     if (!m_bo) {
         qWarning("Could not create buffer for cursor!");
     } else {
+        // Load the default cursor
+        m_cursorTheme.loadTheme(QString(), 32);
+
+        // Always initialize the cursor atlas in case we need it
         initCursorAtlas();
     }
 
@@ -137,6 +141,11 @@ void QEglFSKmsGbmCursor::updateMouseStatus()
 #endif
 }
 
+void QEglFSKmsGbmCursor::setCursorTheme(const QString &name, int size)
+{
+    m_cursorTheme.loadTheme(name, size);
+}
+
 bool QEglFSKmsGbmCursorDeviceListener::hasMouse() const
 {
     return QGuiApplicationPrivate::inputDeviceManager()->deviceCount(QInputDeviceManager::DeviceTypePointer) > 0;
@@ -178,20 +187,26 @@ void QEglFSKmsGbmCursor::changeCursor(QCursor *windowCursor, QWindow *window)
                           windowCursor->hotSpot().x(),
                           windowCursor->hotSpot().y());
     } else {
-        // Standard cursor, look up in atlas
-        const int width = m_cursorAtlas.cursorWidth;
-        const int height = m_cursorAtlas.cursorHeight;
-        const qreal ws = (qreal)m_cursorAtlas.cursorWidth / m_cursorAtlas.width;
-        const qreal hs = (qreal)m_cursorAtlas.cursorHeight / m_cursorAtlas.height;
+        if (m_cursorTheme.isLoaded()) {
+            auto cursor = m_cursorTheme.cursorForShape(newShape);
+            if (cursor.isValid)
+                m_cursorImage.set(cursor.image, cursor.hotSpot.x(), cursor.hotSpot.y());
+        } else {
+            // Standard cursor, look up in atlas
+            const int width = m_cursorAtlas.cursorWidth;
+            const int height = m_cursorAtlas.cursorHeight;
+            const qreal ws = (qreal)m_cursorAtlas.cursorWidth / m_cursorAtlas.width;
+            const qreal hs = (qreal)m_cursorAtlas.cursorHeight / m_cursorAtlas.height;
 
-        QRect textureRect(ws * (newShape % m_cursorAtlas.cursorsPerRow) * m_cursorAtlas.width,
-                          hs * (newShape / m_cursorAtlas.cursorsPerRow) * m_cursorAtlas.height,
-                          width,
-                          height);
-        QPoint hotSpot = m_cursorAtlas.hotSpots[newShape];
-        m_cursorImage.set(m_cursorAtlas.image.copy(textureRect),
-                          hotSpot.x(),
-                          hotSpot.y());
+            QRect textureRect(ws * (newShape % m_cursorAtlas.cursorsPerRow) * m_cursorAtlas.width,
+                              hs * (newShape / m_cursorAtlas.cursorsPerRow) * m_cursorAtlas.height,
+                              width,
+                              height);
+            QPoint hotSpot = m_cursorAtlas.hotSpots[newShape];
+            m_cursorImage.set(m_cursorAtlas.image.copy(textureRect),
+                              hotSpot.x(),
+                              hotSpot.y());
+        }
     }
 
     if (m_cursorImage.image()->width() > m_cursorSize.width() || m_cursorImage.image()->height() > m_cursorSize.height())

@@ -428,7 +428,9 @@ QPlatformNativeInterface::NativeResourceForContextFunction QEglFSIntegration::na
 
 QFunctionPointer QEglFSIntegration::platformFunction(const QByteArray &function) const
 {
-    if (function == Liri::Platform::EglFSFunctions::getPowerStateIdentifier())
+    if (function == Liri::Platform::EglFSFunctions::setCursorThemeIdentifier())
+        return QFunctionPointer(setCursorThemeStatic);
+    else if (function == Liri::Platform::EglFSFunctions::getPowerStateIdentifier())
         return QFunctionPointer(getPowerStateStatic);
     else if (function == Liri::Platform::EglFSFunctions::setPowerStateIdentifier())
         return QFunctionPointer(setPowerStateStatic);
@@ -443,6 +445,15 @@ QFunctionPointer QEglFSIntegration::platformFunction(const QByteArray &function)
 void QEglFSIntegration::createInputHandlers()
 {
     m_liHandler.reset(new Liri::Platform::LibInputManager(this));
+}
+
+void QEglFSIntegration::setCursorThemeStatic(const QString &name, int size)
+{
+    for (auto *screen : qGuiApp->screens()) {
+        auto *platformScreen = static_cast<QEglFSScreen *>(screen->handle());
+        if (platformScreen)
+            platformScreen->setCursorTheme(name, size);
+    }
 }
 
 Liri::Platform::EglFSFunctions::PowerState QEglFSIntegration::getPowerStateStatic(QScreen *screen)

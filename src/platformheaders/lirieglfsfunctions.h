@@ -56,6 +56,10 @@ public:
         PowerStateOff
     };
 
+    typedef void (*SetCursorThemeType)(const QString &name, int size);
+    static QByteArray setCursorThemeIdentifier();
+    static void setCursorTheme(const QString &name, int size);
+
     typedef PowerState (*GetPowerStateType)(QScreen *screen);
     static QByteArray getPowerStateIdentifier();
     static PowerState getPowerState(QScreen *screen);

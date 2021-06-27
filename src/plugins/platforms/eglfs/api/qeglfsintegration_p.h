@@ -122,6 +122,7 @@ private:
     EGLNativeDisplayType nativeDisplay() const;
     void createInputHandlers();
 
+    static void setCursorThemeStatic(const QString &name, int size);
     static Liri::Platform::EglFSFunctions::PowerState getPowerStateStatic(QScreen *screen);
     static void setPowerStateStatic(QScreen *screen, Liri::Platform::EglFSFunctions::PowerState powerState);
 

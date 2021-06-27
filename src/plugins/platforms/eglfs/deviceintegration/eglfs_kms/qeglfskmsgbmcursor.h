@@ -45,6 +45,8 @@
 #include <QtGui/QImage>
 #include <QtGui/private/qinputdevicemanager_p.h>
 
+#include <LiriEglFSDeviceIntegration/private/xcursortheme_p.h>
+
 #include <gbm.h>
 
 QT_BEGIN_NAMESPACE
@@ -85,6 +87,8 @@ public:
 
     void updateMouseStatus();
 
+    void setCursorTheme(const QString &name, int size);
+
 private:
     void initCursorAtlas();
 
@@ -103,6 +107,7 @@ private:
     QPlatformCursorImage m_cursorImage;
     CursorState m_state;
     QEglFSKmsGbmCursorDeviceListener *m_deviceListener;
+    Liri::Platform::XcursorTheme m_cursorTheme;
 
     // cursor atlas information
     struct CursorAtlas {
