@@ -45,3 +45,5 @@ liri_add_module(EglFSKmsSupport
     NO_CMAKE
     NO_PKGCONFIG
 )
+
+liri_finalize_module(EglFSKmsSupport)

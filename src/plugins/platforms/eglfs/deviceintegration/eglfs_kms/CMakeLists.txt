@@ -30,3 +30,5 @@ liri_add_plugin(eglfs-kms-integration
         Liri::EglFSKmsSupportPrivate
         EGL
 )
+
+liri_finalize_plugin(eglfs-kms-integration)

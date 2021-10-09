@@ -13,3 +13,5 @@ liri_add_executable(tst_libinput
         Liri::Logind
     NO_TARGET_INSTALLATION
 )
+
+liri_finalize_executable(tst_libinput)

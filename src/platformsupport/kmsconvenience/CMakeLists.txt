@@ -26,3 +26,5 @@ liri_add_module(KmsSupport
     NO_PKGCONFIG
     STATIC
 )
+
+liri_finalize_module(KmsSupport)

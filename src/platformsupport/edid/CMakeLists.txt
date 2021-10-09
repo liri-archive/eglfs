@@ -18,3 +18,5 @@ liri_add_module(EdidSupport
     NO_PKGCONFIG
     STATIC
 )
+
+liri_finalize_module(EdidSupport)

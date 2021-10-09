@@ -101,6 +101,8 @@ liri_add_module(EglFSDeviceIntegration
     NO_PKGCONFIG
 )
 
+liri_finalize_module(EglFSDeviceIntegration)
+
 liri_add_plugin(lirieglfs
     TYPE
         platforms
@@ -110,3 +112,5 @@ liri_add_plugin(lirieglfs
         Liri::EglFSDeviceIntegration
         Fontconfig::Fontconfig
 )
+
+liri_finalize_plugin(lirieglfs)

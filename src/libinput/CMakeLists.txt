@@ -25,12 +25,6 @@ liri_add_module(LibInput
         libinputtouch.h
         logging.cpp
         logging_p.h
-    FORWARDING_HEADERS
-        LibInputGesture
-        LibInputHandler
-        LibInputKeyboard
-        LibInputPointer
-        LibInputTouch
     PRIVATE_HEADERS
         libinputhandler_p.h
         libinputkeyboard_p.h
@@ -51,3 +45,5 @@ liri_add_module(LibInput
     NO_PKGCONFIG
     STATIC
 )
+
+liri_finalize_module(LibInput)

@@ -4,10 +4,8 @@ liri_add_module(PlatformHeaders
     SOURCES
         lirieglfsfunctions.cpp
         lirieglfsfunctions.h
-    INSTALL_HEADERS
-        lirieglfsfunctions.h
-    FORWARDING_HEADERS
-        LiriEglFSFunctions
+    CLASS_HEADERS
+        LiriEglFSFunctions:lirieglfsfunctions.h
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_FOREACH
@@ -18,3 +16,5 @@ liri_add_module(PlatformHeaders
         Qt5Core
         Qt5Gui
 )
+
+liri_finalize_module(PlatformHeaders)
