@@ -21,6 +21,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;${CMAKE_CURRENT
 ## Liri specific setup common for all modules:
 include(LiriSetup)
 
+## Only build on the appropriate platforms.
+if(NOT UNIX OR ANDROID)
+    message(NOTICE "Skipping the build as the condition \"UNIX OR ANDROID\" is not met.")
+    return()
+endif()
+
 ## Features:
 option(EGLFS_DRM_ATOMIC "DRM atomic support" ON)
 add_feature_info("EglFS::DrmAtomic" EGLFS_DRM_ATOMIC "Build eglfs with DRM atomic support")
